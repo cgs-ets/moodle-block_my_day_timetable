@@ -134,10 +134,13 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
                     'id' => $timetableuser,
                     'date' => $date,
                 ); 
-
                 $timetabledata = $externalDB->get_records_sql($sql, $params);
-
             }
+        }
+
+        // For staff that don't have timetables, hide block on initial load.
+        if ($nav == -1 && empty($timetabledata)) {
+            return;
         }
 
         // Get Moodle class mappings

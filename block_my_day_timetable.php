@@ -217,10 +217,10 @@ class block_my_day_timetable extends block_base {
             // Generate the new timetable.
             $nav = -1;
             list($props, $relateds) = get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $this->instance->id);
-            $timetable = new block_my_day_timetable\external\timetable_exporter($props, $relateds);
-
-            $this->content->text = $OUTPUT->render_from_template('block_my_day_timetable/content', $timetable->export($OUTPUT));
-
+            if (!empty($props)) {
+                $timetable = new block_my_day_timetable\external\timetable_exporter($props, $relateds);
+                $this->content->text = $OUTPUT->render_from_template('block_my_day_timetable/content', $timetable->export($OUTPUT));
+            }
         } catch (Exception $e) {
             $this->content->text .= '<h5>' . get_string('timetableunavailable', 'block_my_day_timetable') . '</h5>';
         }    

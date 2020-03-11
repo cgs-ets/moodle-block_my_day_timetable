@@ -266,6 +266,7 @@
 *****/
 .block_my_day_timetable .timetable-controls {
     margin-bottom: 10px;
+    text-align: right;
 }
 .block_my_day_timetable .timetable-title {
     font-weight: 600;
@@ -274,11 +275,12 @@
 }
 .block_my_day_timetable .spinner {
     display: none;
-    float: right;
-    margin-top: 8px;
+    bottom: -3px;
+    position: relative;
+    right: 15px;
 }
 .block_my_day_timetable .fetchingdata .spinner {
-    display: block;
+    display: inline-block;
 }
 .block_my_day_timetable .spinner .circle {
     display: inline-block;

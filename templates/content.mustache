@@ -26,12 +26,12 @@
 
 <div class="day times {{role}} {{^fromws}}isloading{{/fromws}} {{#hide}}timetable-minimised{{/hide}}{{^hide}}timetable-maximised{{/hide}}" data-region="block_my_day_timetable-instance-{{instanceid}}" data-num-periods="{{numperiods}}" data-num-breaks="{{numbreaks}}" data-timetableday="{{day}}" data-timetabledate="{{date}}" data-timetableuser="{{user}}" data-timetablerole="{{role}}">
     <div class="timetable-controls">
+        <span class="spinner"><span class="circle spin"></span></span>
         <span class="timetable-title">{{#hide}}{{title}}{{/hide}}{{^hide}}{{day}}{{/hide}}</span>
         <a href="#" class="timetable-prev" title="Previous Day"><i class="icon fa fa-chevron-left icon-large" aria-hidden="true" aria-label="Prev"></i></a>
         <a href="#" class="timetable-next" title="Next Day"><i class="icon fa fa-chevron-right icon-large" aria-hidden="true" aria-label="Next"></i></a>
         <a href="#" class="timetable-visible" title="Show timetable"><i class="icon fa fa-eye" aria-hidden="true" aria-label="Hide"></i></a>
         <a href="#" class="timetable-invisible" title="Hide timetable"><i class="icon fa fa-eye-slash" aria-hidden="true" aria-label="Show"></i></a>
-        <span class="spinner"><span class="circle spin"></span></span> 
     </div>
     {{#periods}}
         {{>block_my_day_timetable/period}}
