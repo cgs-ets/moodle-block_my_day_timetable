@@ -188,7 +188,9 @@ class period_exporter extends exporter {
         $otherdata['teacherphoto'] = '';
         if ( $this->data->staffid ) {
             $teacher = $DB->get_record('user', array('username'=>$this->data->staffid));
-            //$otherdata['teacherphoto'] = new moodle_url('/user/pix.php/'.$teacher->id.'/f2.jpg');
+            if ($teacher) {
+                $otherdata['teacherphoto'] = new moodle_url('/user/pix.php/'.$teacher->id.'/f2.jpg');
+            }
         }
         
         // Find and add course link based on class code
