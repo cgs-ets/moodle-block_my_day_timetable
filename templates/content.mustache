@@ -1,0 +1,39 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+    @package   block_my_day_timetable
+    @copyright 2019 Michael Vangelovski, Canberra Grammar School <michael.vangelovski@cgs.act.edu.au>
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+{{!
+    @template block_my_day_timetable/content
+
+    My Day (Timetable) block content template.
+}}
+
+<div class="day times {{role}} {{^fromws}}isloading{{/fromws}} {{#hide}}timetable-minimised{{/hide}}{{^hide}}timetable-maximised{{/hide}}" data-region="block_my_day_timetable-instance-{{instanceid}}" data-num-periods="{{numperiods}}" data-num-breaks="{{numbreaks}}" data-timetableday="{{day}}" data-timetabledate="{{date}}" data-timetableuser="{{user}}" data-timetablerole="{{role}}">
+    <div class="timetable-controls">
+        <span class="timetable-title">{{#hide}}{{title}}{{/hide}}{{^hide}}{{day}}{{/hide}}</span>
+        <a href="#" class="timetable-prev" title="Previous Day"><i class="icon fa fa-chevron-left icon-large" aria-hidden="true" aria-label="Prev"></i></a>
+        <a href="#" class="timetable-next" title="Next Day"><i class="icon fa fa-chevron-right icon-large" aria-hidden="true" aria-label="Next"></i></a>
+        <a href="#" class="timetable-visible" title="Show timetable"><i class="icon fa fa-eye" aria-hidden="true" aria-label="Hide"></i></a>
+        <a href="#" class="timetable-invisible" title="Hide timetable"><i class="icon fa fa-eye-slash" aria-hidden="true" aria-label="Show"></i></a>
+        <span class="spinner"><span class="circle spin"></span></span> 
+    </div>
+    {{#periods}}
+        {{>block_my_day_timetable/period}}
+    {{/periods}}    
+</div>
