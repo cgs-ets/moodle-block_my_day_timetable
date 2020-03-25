@@ -44,6 +44,8 @@ $string['dbstaffproc'] = 'Staff timetable stored procedure';
 $string['dbstaffproc_desc'] = 'Stored procedure name to retrieve staff timetable data. This plugin expects that the stored procedure accepts a single parameter for the staff id. The return data needs to be in a specific format too.';
 $string['dbstudentproc'] = 'Student timetable stored procedure';
 $string['dbstudentproc_desc'] = 'Stored procedure name to retrieve student timetable data. This plugin expects that the stored procedure accepts a single parameter for the student id. The return data needs to be in a specific format too.';
+$string['dbtermproc'] = 'Term details stored procedure';
+$string['dbtermproc_desc'] = 'Stored procedure name to retrieve term data. This Stored procedure does not accept parameters.';
 
 $string['timetablecolours'] = 'Timetable colours';
 $string['timetablecolours_desc'] = 'Configuration for period background colours. CSS Colors added in a JSON type format, e.g. <br>"math":"#547384",<br>"science":"#8A439C",<br>The colour is selected based on whether the key is found in the class description.';

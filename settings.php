@@ -59,6 +59,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('block_my_day_timetable/dbstaffproc', get_string('dbstaffproc', 'block_my_day_timetable'), get_string('dbstaffproc_desc', 'block_my_day_timetable'), ''));
 
     $settings->add(new admin_setting_configtext('block_my_day_timetable/dbstudentproc', get_string('dbstudentproc', 'block_my_day_timetable'), get_string('dbstudentproc_desc', 'block_my_day_timetable'), ''));
+    
+    $settings->add(new admin_setting_configtext('block_my_day_timetable/dbtermproc', get_string('dbtermproc', 'block_my_day_timetable'), get_string('dbtermproc_desc', 'block_my_day_timetable'),
+            ''));
 
 
 

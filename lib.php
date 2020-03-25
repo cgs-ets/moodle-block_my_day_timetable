@@ -18,7 +18,7 @@
  *  External Web Service Template
  *
  * @package   my_day_timetable
- * @category  
+ * @category
  * @copyright 2020 Veronica Bermegui, Canberra Grammar School <veronica.bermegui@cgs.act.edu.au>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -48,17 +48,17 @@ function block_my_day_timetable_user_preferences() {
             return $user->id == $USER->id;
         }
     );
-    
+
     return $preferences;
 }
 
 /**
  * Navigate timetable.
- * 
+ *
  */
 function get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $instanceid) {
     if ($nav != -1) {
-        $day = date('D', $date); 
+        $day = date('D', $date);
     }
 
     $nav_date = $date;
@@ -74,7 +74,7 @@ function get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $in
                 $nav_date = utils::get_prev_day($nav_date, 1, true);
             }
             break;
-            
+
        case 1: //Forward
             if (strcmp($day,'Fri') == 0) {
                 $date = utils::get_next_day($nav_date, 3);
@@ -85,14 +85,14 @@ function get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $in
             }
             break;
     }
-
+    //var_dump(get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $nav, $instanceid)); exit;
     return $timetabledata = get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $nav, $instanceid);
 
-} 
+}
 
 /**
- * Auxiliar function to get timetable data from external source.
- * 
+ * Auxiliary function to get timetable data from external source.
+ *
  */
 function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $nav, $instanceid) {
     global $USER;
@@ -100,22 +100,22 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
     try{
         //Get  config of this block.
         $config = get_config('block_my_day_timetable');
-        
+
         // Get our prefered database driver.
         // Last parameter (external = true) means we are not connecting to a Moodle database.
-        $externalDB = moodle_database::get_driver_instance($config->dbtype, 'native', true);        
+        $externalDB = moodle_database::get_driver_instance($config->dbtype, 'native', true);
         // Connect to external DB
         $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
-       
+
         $sql = 'EXEC ' . $config->{'db' . $timetablerole . 'proc'} . ' :id, :date';
-    
+
         $params = array(
             'id' => $timetableuser,
             'date' => $date,
-        );          
+        );
 
         $timetabledata = $externalDB->get_records_sql($sql, $params);
-        
+
         //Only look for available days when navigating the timetable.
         if ($nav == 0 || $nav == 1) {
             $days = 0;
@@ -133,7 +133,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
                 $params = array(
                     'id' => $timetableuser,
                     'date' => $date,
-                ); 
+                );
                 $timetabledata = $externalDB->get_records_sql($sql, $params);
             }
         }
@@ -149,8 +149,8 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
             $classcodes = array_filter(array_column($timetabledata, 'classcode'));
             if ($classcodes) {
                 list($idsql, $params) = $externalDB->get_in_or_equal($classcodes);
-                $sql = "SELECT  $config->mappingtableid, 
-                                $config->mappingtableextcode, 
+                $sql = "SELECT  $config->mappingtableid,
+                                $config->mappingtableextcode,
                                 $config->mappingtablemoocode
                           FROM  $config->mappingtable
                          WHERE  SynCode $idsql";
@@ -158,18 +158,33 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
             }
         }
 
-        //Set the user preference to collapse or show the timetable. 
+        // Get current term details. Only for staff.
+        if($timetablerole == 'staff'){
+            $daytoprocess;
+            if(!is_string($nav_date)){
+                $daytoprocess = date('Y-m-d',$nav_date);
+            }else{
+                $daytoprocess = $nav_date;
+            }
+            $termdetails = getterminformationdetails($externalDB, $daytoprocess);
+        }
+
+        // Set the user preference to collapse or show the timetable.
         $userpreference = get_user_preferences('block_my_day_timetable_collapsed', 0, $USER);
-        
+
         $props = (object) [
             'instanceid' => $instanceid,
-            'role' => $timetablerole,             
-            'showprogressbar' => $config->showprogressbar,   
+            'role' => $timetablerole,
+            'showprogressbar' => $config->showprogressbar,
             'user' => $timetableuser,
             'date' => $nav_date,
             'hide' =>  $userpreference,
-            'fromws' => ($nav == -1) ? false : true, //To remove the loading class when the tt is render. $date
+            'fromws' => ($nav == -1) ? false : true, // To remove the loading class when the tt is render.
             'day' => ($nav == -1) ? date('l, j F Y', time()) : date('l, j F Y', $nav_date), //Show Day, Number Month Year.
+            'termnumber' => ($timetablerole == 'staff') ? $termdetails['termnumber'] : '',
+            'termweek'   => ($timetablerole == 'staff') ? $termdetails['termweek'] : '',
+            'termday'    => ($timetablerole == 'staff') ? $termdetails['termday'] : '',
+            'termfinished' => ($termdetails['termnumber']== null) ? true : false,
         ];
 
         $relateds = [
@@ -181,12 +196,67 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
             'timetablerole'=> $timetablerole,
             'timetableuser'=> $timetableuser,
         ];
-       
-        $timetabledata = array($props, $relateds);             
-       
+
+        $timetabledata = array($props, $relateds);
+
     } catch (Exception $ex) {
+
         throw new Exception($ex->getMessage());
     }
 
     return $timetabledata;
+}
+
+/**
+ * Calculates the week and day of the terms.
+ * @param type $externalDB
+ * @param DateTime $processday
+ * @return int
+ */
+function getterminformationdetails($externalDB, $processday){
+    $config = get_config('block_my_day_timetable');
+    $sql = 'EXEC ' . $config->dbtermproc;
+    $r = $externalDB->get_records_sql($sql);
+    $r = ($r[(key($r))]);
+
+    $term_start = new DateTime($r->startdate);
+    $term_finish = new DateTime($r->enddate);
+    $processday = new DateTime($processday);
+
+    // Check if the term finished. If that is the case, then return empty values.
+    if(istermfinished($processday, $term_start, $term_finish)){
+        return null;
+    }else{
+        $intervals = utils::getintervals($term_start, $term_finish);
+        $weeks = date_diff($processday, $term_start, true);
+        $weeks =      $weeks =  (floor(($weeks->days / 6)) == 0) ? 1 : floor($weeks->days / 6);
+        $terminfo = ['termnumber' => $r->filesemester,
+            'termweek' =>  $weeks,
+            'termday' => utils::gettermday($intervals,$processday->getTimestamp()) ,
+        ];
+    }
+
+    return $terminfo;
+
+}
+/**
+ * Helper function checks if the day that is being processed is after the date
+ * a term finishes or earlier than the starting day of a term.
+ *
+ * @param type $processday
+ * @param type $term_start
+ * @param type $term_finished
+ * @return boolean
+ */
+function istermfinished($processday, $term_start, $term_finished){
+    $processday = date('Y-m-d',$processday->getTimestamp());
+    $term_start = date('Y-m-d',$term_start->getTimestamp());
+    $term_finished = date('Y-m-d',$term_finished->getTimestamp());
+
+    if($processday > $term_finished || $processday < $term_start){
+        return true;
+    }
+
+    return false;
+
 }

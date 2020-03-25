@@ -15,11 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link local_announcements\external\api} class.
- *
- * @package   local_announcements
- * @category    external
- * @copyright 2019 Michael Vangelovski <michael.vangelovski@hotmail.com>
+ * @copyright 2020 Veronica Bermegui, Michael Vangelovski
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */

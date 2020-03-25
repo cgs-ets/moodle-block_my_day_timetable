@@ -271,7 +271,14 @@
 .block_my_day_timetable .timetable-title {
     font-weight: 600;
     font-size: 1.1rem;
-    margin-right: 15px;
+    margin-left: 15px;
+
+}
+
+.block_my_day_timetable .timetable-term {
+    font-weight: 600;
+    font-size: 1.1rem;   
+    margin-right: 26px;
 }
 .block_my_day_timetable .spinner {
     display: none;

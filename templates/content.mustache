@@ -26,6 +26,7 @@
 
 <div class="day times {{role}} {{^fromws}}isloading{{/fromws}} {{#hide}}timetable-minimised{{/hide}}{{^hide}}timetable-maximised{{/hide}}" data-region="block_my_day_timetable-instance-{{instanceid}}" data-num-periods="{{numperiods}}" data-num-breaks="{{numbreaks}}" data-timetableday="{{day}}" data-timetabledate="{{date}}" data-timetableuser="{{user}}" data-timetablerole="{{role}}">
     <div class="timetable-controls">
+       {{^hide}}{{^termfinished}}<span class="timetable-term">Term {{termnumber}} Week {{termweek}}  Day {{termday}}</span>{{/termfinished}}{{/hide}}
         <span class="spinner"><span class="circle spin"></span></span>
         <span class="timetable-title">{{#hide}}{{title}}{{/hide}}{{^hide}}{{day}}{{/hide}}</span>
         <a href="#" class="timetable-prev" title="Previous Day"><i class="icon fa fa-chevron-left icon-large" aria-hidden="true" aria-label="Prev"></i></a>

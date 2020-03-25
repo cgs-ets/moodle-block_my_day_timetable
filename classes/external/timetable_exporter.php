@@ -64,6 +64,18 @@ class timetable_exporter extends exporter {
             'day' => [
                 'type' => PARAM_ALPHANUMEXT,
             ],
+            'termnumber' => [
+                'type' => PARAM_ALPHANUMEXT,
+            ],
+             'termweek' => [
+                'type' => PARAM_ALPHANUMEXT,
+            ],
+             'termday' => [
+                'type' => PARAM_ALPHANUMEXT,
+            ],
+            'termfinished' => [
+              'type' => PARAM_BOOL,
+            ],
         ];
     }
 
