@@ -85,7 +85,7 @@ function get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $in
             }
             break;
     }
-    //var_dump(get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $nav, $instanceid)); exit;
+
     return $timetabledata = get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $nav, $instanceid);
 
 }

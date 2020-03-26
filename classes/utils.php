@@ -38,7 +38,7 @@ require_once($CFG->libdir .'\accesslib.php');
  */
 
 class utils {
-    
+
     /**
      * Iterate through an array until one of the array keys is found in a string and return the corresponding value.
      *
@@ -54,7 +54,7 @@ class utils {
         }
         return false;
     }
- 
+
     /**
      * Get the previous day.
      *
@@ -96,7 +96,7 @@ class utils {
     }
     /**
      * Return an array with all the 2 weeks intervals in a given term
-     * 
+     *
      * @param type $term_start
      * @param type $term_finish
      * @return array.
@@ -107,36 +107,36 @@ class utils {
         $intervals = array();
         $weeksinterm = utils::getweeksinaterm($term_start, $term_finish);
 
-        while ($weeksinterm > 0) { 
+        while ($weeksinterm > 0) {
             $finish = utils::get_next_day($start->getTimestamp(), 14);
             $intervals[date('Y-m-d', $start->getTimestamp())] = $finish;
-            $start = new \Datetime($finish);            
+            $start = new \Datetime($finish);
             $day = $finish;
             $weeksinterm -= 2.5;
-             
+
         }
         return $intervals;
     }
-    
+
     /**
      * Returns the number of weeks in a term.
      * @param type $term_start
      * @param type $term_finish
      * @return int
      */
-    public static function getweeksinaterm($term_start, $term_finish){        
+    public static function getweeksinaterm($term_start, $term_finish){
         $countweeks = 1;
         $week = $term_start;
-        
+
         while($week <= $term_finish) {
-            $week = new \DateTime(utils::get_next_day($term_start->getTimestamp(), (7 * $countweeks)));        
-            $countweeks++;             
-        }           
-       return $countweeks;        
+            $week = new \DateTime(utils::get_next_day($term_start->getTimestamp(), (7 * $countweeks)));
+            $countweeks++;
+        }
+       return $countweeks;
     }
-    
+
     /**
-     * Return the number of days from a two weeks cycle, skipping weekends.     * 
+     * Return the number of days from a two weeks cycle, skipping weekends.     *
      * @param type $intervals
      * @return int
      */
@@ -146,20 +146,20 @@ class utils {
         $endcycle;
         // Get the week range to look at.
         foreach($intervals as $start => $finish){
-            if ($processday > $start && $processday < $finish){             
+            if ($processday >= $start && $processday < $finish){
                 $begincicle = $start;
                 $endcycle = $finish;
                 break;
             }
         }
-        
+
         $begincicle = new \DateTime($begincicle);
         $endcycle = new \DateTime($endcycle);
-        
+
         $countdays= 1;
         $cont = true;
         $processday = new \DateTime($processday);
-        
+
         // Count the days. Skip Saturday and Sunday.
         while($cont && $begincicle < $endcycle) {
             if( $processday > $begincicle){
@@ -167,8 +167,8 @@ class utils {
                 if(strcmp(date('D',$begincicle->getTimestamp()),'Sat') != 0 &&
                     strcmp(date('D',$begincicle->getTimestamp()),'Sun') != 0 ){
                     $countdays++;
-                    
-                }                                
+
+                }
             }else{
                 $cont = false;
             }
