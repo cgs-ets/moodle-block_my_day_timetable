@@ -167,6 +167,10 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
                 $daytoprocess = $nav_date;
             }
             $termdetails = getterminformationdetails($externalDB, $daytoprocess);
+            $termfinished = false;
+            if ($termdetails == null){
+                $termfinished = true;
+            }
         }
 
         // Set the user preference to collapse or show the timetable.
@@ -184,7 +188,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
             'termnumber' => ($timetablerole == 'staff') ? $termdetails['termnumber'] : '',
             'termweek'   => ($timetablerole == 'staff') ? $termdetails['termweek'] : '',
             'termday'    => ($timetablerole == 'staff') ? $termdetails['termday'] : '',
-            'termfinished' => ($termdetails['termnumber']== null) ? true : false,
+            'termfinished' => ($timetablerole == 'staff') ? $termfinished : true,  // For students always set to true. This way the template doesnt display term details.
         ];
 
         $relateds = [
