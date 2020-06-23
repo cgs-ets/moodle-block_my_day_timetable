@@ -107,6 +107,7 @@ class utils {
         $intervals = array();
         $weeksinterm = utils::getweeksinaterm($term_start, $term_finish);
 
+
         while ($weeksinterm > 0) {
             $finish = utils::get_next_day($start->getTimestamp(), 14);
             $intervals[date('Y-m-d', $start->getTimestamp())] = $finish;
@@ -121,7 +122,7 @@ class utils {
             $ws = end($intervals);
             $intervals[$ws] = date('Y-m-d', $term_finish->getTimestamp());
         }
-
+       
         return $intervals;
     }
 
@@ -134,13 +135,15 @@ class utils {
     public static function getweeksinaterm($term_start, $term_finish){
         $countweeks = 1;
         $week = $term_start;
+        $cw = 0;
 
-        while($week <= $term_finish) {
+        while($week < $term_finish) {
             $week = new \DateTime(utils::get_next_day($term_start->getTimestamp(), (7 * $countweeks)));
             $countweeks++;
+            $cw++ ;
         }
 
-       return $countweeks;
+       return $cw;
     }
 
     /**

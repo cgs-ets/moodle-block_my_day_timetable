@@ -159,13 +159,15 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
         }
 
         // Get current term details. Only for staff.
-        if($timetablerole == 'staff'){
+        if ($timetablerole == 'staff') {
             $daytoprocess;
-            if(!is_string($nav_date)){
+
+            if (!is_string($nav_date)) {
                 $daytoprocess = date('Y-m-d',$nav_date);
             }else{
                 $daytoprocess = $nav_date;
             }
+
             $termdetails = getterminformationdetails($externalDB, $daytoprocess);
             $termfinished = false;
             if ($termdetails == null){
@@ -233,12 +235,16 @@ function getterminformationdetails($externalDB, $processday){
     if(istermfinished($processday, $term_start, $term_finish)){
         return null;
     }else{
+
         $intervals = utils::getintervals($term_start, $term_finish);
 
         $weeks = date_diff($processday, $term_start, true);
+        $weeks = (floor(($weeks->days / 6)) == 0) ? 1 : floor($weeks->days / 6);
+        $weeksinterm = utils::getweeksinaterm($term_start, $term_finish);
 
-        $weeks = (floor(($weeks->days / 7)) == 0) ? 1 : floor($weeks->days / 7);
-
+        if ($weeks > $weeksinterm ){
+            $weeks = $weeksinterm;
+        }
         $terminfo = ['termnumber' => $r->filesemester,
             'termweek' =>  $weeks,
             'termday' => utils::gettermday($intervals,$processday->getTimestamp()) ,
