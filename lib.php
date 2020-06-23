@@ -226,6 +226,7 @@ function getterminformationdetails($externalDB, $processday){
 
     $term_start = new DateTime($r->startdate);
     $term_finish = new DateTime($r->enddate);
+
     $processday = new DateTime($processday);
 
     // Check if the term finished. If that is the case, then return empty values.
@@ -233,8 +234,11 @@ function getterminformationdetails($externalDB, $processday){
         return null;
     }else{
         $intervals = utils::getintervals($term_start, $term_finish);
+
         $weeks = date_diff($processday, $term_start, true);
-        $weeks =      $weeks =  (floor(($weeks->days / 6)) == 0) ? 1 : floor($weeks->days / 6);
+
+        $weeks = (floor(($weeks->days / 7)) == 0) ? 1 : floor($weeks->days / 7);
+
         $terminfo = ['termnumber' => $r->filesemester,
             'termweek' =>  $weeks,
             'termday' => utils::gettermday($intervals,$processday->getTimestamp()) ,
