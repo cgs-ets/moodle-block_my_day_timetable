@@ -176,6 +176,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
         // Set the user preference to collapse or show the timetable.
         $userpreference = get_user_preferences('block_my_day_timetable_collapsed', 0, $USER);
 
+
         $props = (object) [
             'instanceid' => $instanceid,
             'role' => $timetablerole,
@@ -184,7 +185,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
             'date' => $nav_date,
             'hide' =>  $userpreference,
             'fromws' => ($nav == -1) ? false : true, // To remove the loading class when the tt is render.
-            'day' => ($nav == -1) ? date('l, j F Y', time()) : date('l, j F Y', $nav_date), //Show Day, Number Month Year.
+            'day' => ($nav == -1) ? daytodisplay() : date('l, j F Y', $nav_date), //Show Day, Number Month Year.
             'termnumber' => ($timetablerole == 'staff') ? $termdetails['termnumber'] : '',
             'termweek'   => ($timetablerole == 'staff') ? $termdetails['termweek'] : '',
             'termday'    => ($timetablerole == 'staff') ? $termdetails['termday'] : '',
@@ -260,7 +261,27 @@ function istermfinished($processday, $term_start, $term_finished){
     if($processday > $term_finished || $processday < $term_start){
         return true;
     }
-
     return false;
+}
+
+/**
+ * At the end of the day, refresh the Date displayed at the top of the table
+ * to the next day. To avoid confusion of showing next day TT and today date.
+ */
+function daytodisplay(){
+    $config = get_config('block_my_day_timetable');
+
+    $finishing_time = new DateTime($config->endofday);
+    $current_time = new DateTime('now');
+    $isfriday = strcmp(date('D'), 'Fri') == 0;
+
+    if (($finishing_time < $current_time) && !$isfriday) { // EOD.
+        $date = date('l, j F Y', utils::get_next_day(time(), 1, true));
+    } elseif (($finishing_time < $current_time) && $isfriday) { //EOW.
+        $date = date('l, j F Y', utils::get_next_day(time(), 3, true));
+    } else { // Today.
+        $date = date('l, j F Y', time());
+    }
+    return $date;
 
 }
