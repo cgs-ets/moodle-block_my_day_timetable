@@ -103,18 +103,28 @@ class utils {
      */
     public static function getintervals($term_start, $term_finish) {
         $day = new \DateTime('now');
+
+
         $start = $term_start;
         $intervals = array();
         $weeksinterm = utils::getweeksinaterm($term_start, $term_finish);
 
         while ($weeksinterm > 0) {
             $finish = utils::get_next_day($start->getTimestamp(), 14);
+
             $intervals[date('Y-m-d', $start->getTimestamp())] = $finish;
             $start = new \Datetime($finish);
             $day = $finish;
             $weeksinterm -= 2.5;
-
         }
+
+        // There are some cases where the two week cycle ends before the end of the term
+        // In that case add an extra interval
+        if (end($intervals) < $term_finish) {
+            $ws = end($intervals);
+            $intervals[$ws] = date('Y-m-d', $term_finish->getTimestamp());
+        }
+
         return $intervals;
     }
 
@@ -144,6 +154,7 @@ class utils {
         $processday = date('Y-m-d', $day);
         $begincicle;
         $endcycle;
+
         // Get the week range to look at.
         foreach($intervals as $start => $finish){
             if ($processday >= $start && $processday < $finish){
