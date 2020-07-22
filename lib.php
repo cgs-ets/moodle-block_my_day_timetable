@@ -168,7 +168,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
                 $daytoprocess = $nav_date;
             }
 
-            $termdetails = getterminformationdetails($externalDB, $daytoprocess);
+            $termdetails = getterminformationdetails($externalDB, $daytoprocess, $timetabledata);
             $termfinished = false;
             if ($termdetails == null){
                 $termfinished = true;
@@ -220,7 +220,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
  * @param DateTime $processday
  * @return int
  */
-function getterminformationdetails($externalDB, $processday){
+function getterminformationdetails($externalDB, $processday, $timetabledata){
     $config = get_config('block_my_day_timetable');
     $sql = 'EXEC ' . $config->dbtermproc;
     $r = $externalDB->get_records_sql($sql);
@@ -237,17 +237,21 @@ function getterminformationdetails($externalDB, $processday){
     }else{
 
         $intervals = utils::getintervals($term_start, $term_finish);
+        $termday = (current($timetabledata)->definitionday);
 
         $weeks = date_diff($processday, $term_start, true);
+
         $weeks = (floor(($weeks->days / 6)) == 0) ? 1 : floor($weeks->days / 6);
+
         $weeksinterm = utils::getweeksinaterm($term_start, $term_finish);
 
         if ($weeks > $weeksinterm ){
             $weeks = $weeksinterm;
         }
+
         $terminfo = ['termnumber' => $r->filesemester,
             'termweek' =>  $weeks,
-            'termday' => utils::gettermday($intervals,$processday->getTimestamp()) ,
+            'termday' => $termday,
         ];
     }
 
