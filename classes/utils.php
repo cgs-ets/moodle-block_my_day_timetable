@@ -25,8 +25,8 @@ namespace block_my_day_timetable;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir .'\filelib.php');
-require_once($CFG->libdir .'\accesslib.php');
+require_once($CFG->libdir .'/filelib.php');
+require_once($CFG->libdir .'/accesslib.php');
 
 /**
  * Provides utility functions for this plugin.
