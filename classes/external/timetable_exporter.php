@@ -146,52 +146,51 @@ class timetable_exporter extends exporter {
         // Build a useful and clean array of periods.
         foreach ($this->related['timetabledata'] as $ix => $class) {
 
-            if($class->classdescription != null ){
-                // Only include Periods, Sessions & Pastoral for now.
-                $validperiodnames = array_map('trim', explode(',', $this->related['validperiodnames']));
-                if (preg_match("/" . implode($validperiodnames, '|') . "/i", $class->perioddescription)) {
-                    $relateds = [
-                        'timetablecolours' => $this->related['timetablecolours'],
-                        'validbreaknames' => $this->related['validbreaknames'],
-                        'classmapping' => $this->related['classmapping'],
-                    ];
+            if($class->classdescription == null && $this->data->role == 'student'){
+                continue;
+            }
+            // Only include Periods, Sessions & Pastoral for now.
+            $validperiodnames = array_map('trim', explode(',', $this->related['validperiodnames']));
+            if (preg_match("/" . implode($validperiodnames, '|') . "/i", $class->perioddescription)) {
+                $relateds = [
+                    'timetablecolours' => $this->related['timetablecolours'],
+                    'validbreaknames' => $this->related['validbreaknames'],
+                    'classmapping' => $this->related['classmapping'],
+                ];
 
-                    // if there is a previous period, check for duplicates
-                    if ( count($periods) ) {
-                        $previousix = count($periods) - 1;
-                        // Sometimes staff can teach 2 classes at the same time.
-                        // Check if this period is the same as the last period
-                        if ( $class->perioddescription == $periods[$previousix]->perioddescription ) {
-                            // Attempt to incorporate the meaningful defference between the two classes into the previous period, and skip over this one.
-                            $differences = array_diff(explode(' ', $class->classdescription), explode(' ', $periods[$previousix]->classdescription));
-                            if ($differences) {
-                                $periods[$previousix]->classdescription .= ', ' . implode(' ', $differences);
-                            }
-                            continue;
+                // if there is a previous period, check for duplicates
+                if ( count($periods) ) {
+                    $previousix = count($periods) - 1;
+                    // Sometimes staff can teach 2 classes at the same time.
+                    // Check if this period is the same as the last period
+                    if ( $class->perioddescription == $periods[$previousix]->perioddescription ) {
+                        // Attempt to incorporate the meaningful defference between the two classes into the previous period, and skip over this one.
+                        $differences = array_diff(explode(' ', $class->classdescription), explode(' ', $periods[$previousix]->classdescription));
+                        if ($differences) {
+                            $periods[$previousix]->classdescription .= ', ' . implode(' ', $differences);
                         }
+                        continue;
                     }
-
-                    //Synergetic timetable data is not consistent for staff. Sometimes it includes breaks, sometimes has empty periods for staff. For students, these are free periods, for staff just exlude these things.
-                    if ( $this->data->role == 'staff' ) {
-                        if ( strpos($class->perioddescription, 'Period') !== false && empty($class->classcode) ) {
-                            continue;
-                        }
-                    }
-
-                    // Export the period
-                    $periodexporter = new period_exporter($class, $relateds);
-                    $period = $periodexporter->export($output);
-
-                    // Check if this period is a break
-                    if ($period->isbreak) {
-                        $numbreaks++;
-                    }
-
-                    // Add the exported period to the list
-                    $periods[] = $period;
-
                 }
 
+                //Synergetic timetable data is not consistent for staff. Sometimes it includes breaks, sometimes has empty periods for staff. For students, these are free periods, for staff just exlude these things.
+                if ( $this->data->role == 'staff' ) {
+                    if ( strpos($class->perioddescription, 'Period') !== false && empty($class->classcode) ) {
+                        continue;
+                    }
+                }
+
+                // Export the period
+                $periodexporter = new period_exporter($class, $relateds);
+                $period = $periodexporter->export($output);
+
+                // Check if this period is a break
+                if ($period->isbreak) {
+                    $numbreaks++;
+                }
+
+                // Add the exported period to the list
+                $periods[] = $period;
 
             }
         }
