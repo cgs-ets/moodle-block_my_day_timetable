@@ -19,7 +19,7 @@
  *
  * @package   my_day_timetable
  * @category
- * @copyright 2020 Veronica Bermegui, Canberra Grammar School <veronica.bermegui@cgs.act.edu.au>
+ * @copyright 2020 Veronica Bermegui, Michael Vangelovski
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,15 +31,13 @@ use external_function_parameters;
 use external_value;
 use external_single_structure;
 
-
-
 require_once($CFG->libdir.'/externallib.php');
 require_once($CFG->dirroot . '/blocks/my_day_timetable/lib.php');
 
 /**
  * Trait implementing the external function block_my_day_timetable_navigate_timetable
  */
-trait get_timetable_for_date {
+trait get_timetable_html_for_date {
 
 
     /**
@@ -47,14 +45,14 @@ trait get_timetable_for_date {
      * @return external_function_parameters
     */
 
-    public static  function get_timetable_for_date_parameters(){
+    public static  function get_timetable_html_for_date_parameters(){
         return new external_function_parameters(
             array(
                   'timetableuser' => new external_value(PARAM_ALPHANUMEXT, 'id of the user'),
                   'timetablerole' => new external_value(PARAM_ALPHANUMEXT, 'role of the user'),
-                  'nav' =>  new external_value(PARAM_INT, 'Nav direction'),
-                  'date' =>  new external_value(PARAM_INT, 'Date'),
-                  'instanceid' =>  new external_value(PARAM_INT, 'Instance ID')
+                  'nav' => new external_value(PARAM_INT, 'Nav direction'),
+                  'date' => new external_value(PARAM_RAW, 'Date'),
+                  'instanceid' => new external_value(PARAM_INT, 'Instance ID')
             )
         );
     }
@@ -67,25 +65,24 @@ trait get_timetable_for_date {
      *         int $nav represents a nav direction, 0: Backward, 1: Forward.
      * @return a timetable for a user.
      */
-    public static function get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $instanceid) {
+    public static function get_timetable_html_for_date($timetableuser, $timetablerole, $nav, $date, $instanceid) {
         global $USER, $PAGE;
 
         $context = \context_user::instance($USER->id);
         self::validate_context($context);
         //Parameters validation
-        self::validate_parameters(self::get_timetable_for_date_parameters(),
+        self::validate_parameters(self::get_timetable_html_for_date_parameters(),
             array(
                   'timetableuser' => $timetableuser,
                   'timetablerole'=> $timetablerole,
                   'nav'=> $nav,
                   'date'=> $date,
                   'instanceid'=> $instanceid,
-
             )
         );
 
         // Generate the new timetable
-        list($props, $relateds) = get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $instanceid);
+        list($props, $relateds) = navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instanceid);
 
         $exporter = new \block_my_day_timetable\external\timetable_exporter($props, $relateds);
 
@@ -93,7 +90,7 @@ trait get_timetable_for_date {
         $data = $exporter->export($output);
 
         return array(
-            'html'=>$output->render_from_template('block_my_day_timetable/content', $data),
+            'html' => $output->render_from_template('block_my_day_timetable/content', $data),
         );
     }
 
@@ -103,12 +100,11 @@ trait get_timetable_for_date {
      * @return external_single_structure
      *
      */
-    public static function get_timetable_for_date_returns(){
+    public static function get_timetable_html_for_date_returns(){
         return new external_single_structure(
-                array(
-                    //'date' => new external_value(PARAM_INT,'Timestamp of the new timetable'),
-                    'html' => new external_value(PARAM_RAW,'HTML of new timetable'),
-                 )
-      );
+            array(
+                'html' => new external_value(PARAM_RAW,'HTML of new timetable'),
+            )
+        );
     }
 }

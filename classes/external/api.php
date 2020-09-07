@@ -35,7 +35,8 @@ use external_api;
  */
 class api extends external_api {
 
-    use get_timetable_for_date;
+    use get_timetable_html_for_date;
+    use get_timetable_data_for_date;
    
     
 }

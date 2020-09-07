@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 use block_my_day_timetable\utils;
+require_once($CFG->dirroot . '/user/profile/lib.php');
 require_once($CFG->dirroot . '/blocks/my_day_timetable/lib.php');
 
 class block_my_day_timetable extends block_base {
@@ -90,143 +91,39 @@ class block_my_day_timetable extends block_base {
         $this->content->text = '';
         $this->content->footer = '';
 
-        $context = CONTEXT_COURSE::instance($COURSE->id);
         $config = get_config('block_my_day_timetable');
 
         // Check DB settings are available
         if( empty($config->dbtype) ||
-                empty($config->dbhost) ||
-                empty($config->dbuser) ||
-                empty($config->dbpass) ||
-                empty($config->dbname) ||
-                empty($config->dbstaffproc) ||
-                empty($config->dbstudentproc)  ) {
+            empty($config->dbhost) ||
+            empty($config->dbuser) ||
+            empty($config->dbpass) ||
+            empty($config->dbname) ||
+            empty($config->dbstaffproc) ||
+            empty($config->dbstudentproc)  ) {
             $notification = new \core\output\notification(get_string('nodbsettings', 'block_my_day_timetable'),
                                                           \core\output\notification::NOTIFY_ERROR);
             $notification->set_show_closebutton(false);
-            $this->content->text = $OUTPUT->render($notification);
-            return $this->content;
+            return $OUTPUT->render($notification);
         }
 
         // CampusRoles profile field is required by this plugin.
+        profile_load_custom_fields($USER);
         if(!isset($USER->profile['CampusRoles'])) {
             $notification = new \core\output\notification(get_string('userprofilenotsetup', 'block_my_day_timetable'),
                                                           \core\output\notification::NOTIFY_ERROR);
             $notification->set_show_closebutton(false);
-            $this->content->text = $OUTPUT->render($notification);
-            return $this->content;
-        }
-
-        // Initialise some defaults.
-        $timetableuser = $USER->username;
-        $timetablerole = '';
-        $userroles = array_map('trim', explode(',', $USER->profile['CampusRoles']));
-
-        // Load in some config.
-        $studentroles = array_map('trim', explode(',', $config->studentroles));
-        $staffroles = array_map('trim', explode(',', $config->staffroles));
-
-        // Determine if user is viewing this block on a profile page.
-        if ( $PAGE->url->get_path() == '/user/profile.php' ) {
-            // Get the profile user.
-            $profileuser = $DB->get_record('user', ['id' => $PAGE->url->get_param('id')]);
-            $timetableuser = $profileuser->username;
-            // Load the user's custom profile fields.
-            profile_load_custom_fields($profileuser);
-            $profileroles = explode(',', $profileuser->profile['CampusRoles']);
-
-            // Check whether the timetable should be displayed for this profile user.
-            // E.g. Senior student's and staff.
-            if (array_intersect($profileroles, $studentroles)) {
-                $timetablerole = 'student';
-            }
-            elseif (array_intersect($profileroles, $staffroles)) {
-                $timetablerole = 'staff';
-            }
-            else {
-                return null;
-            }
-
-            // Determine who is allowed to view this timetable.
-            $allowed = false;
-
-            // Staff are always allowed to view timetables in profiles.
-            if (array_intersect($userroles, $staffroles)) {
-                $allowed = true;
-            }
-
-            // Students are allowed to see timetables in their own profiles.
-            if ($profileuser->username == $USER->username) {
-                $allowed = true;
-            }
-
-            // Parents are allowed to view timetables in their mentee profiles.
-            $mentorrole = $DB->get_record('role', array('shortname' => 'parent'));
-            $sql = "SELECT ra.*, r.name, r.shortname
-                    FROM {role_assignments} ra 
-                    INNER JOIN {role} r ON ra.roleid = r.id
-                    INNER JOIN {user} u ON ra.userid = u.id
-                    WHERE ra.userid = ? 
-                    AND ra.roleid = ? 
-                    AND ra.contextid IN (SELECT c.id
-                        FROM {context} c
-                        WHERE c.contextlevel = ?
-                        AND c.instanceid = ?)";
-            $params = array(
-                $USER->id, //Where current user
-                $mentorrole->id, // is a mentor
-                CONTEXT_USER,
-                $profileuser->id, // of the prfile user
-            );
-            $mentor = $DB->get_records_sql($sql, $params);
-            if ( !empty($mentor) ) {
-                $allowed = true;
-            }
-
-            if ( !$allowed ) {
-                return null;
-            }
-
-        } else {
-            // Check whether the timetable should be displayed for this user.
-            if (array_intersect($userroles, $studentroles)) {
-                $timetablerole = 'student';
-            } 
-            elseif (array_intersect($userroles, $staffroles)) {
-                $timetablerole = 'staff';
-            }
-            else {
-                return $timetablerole = null;
-            }
+            return $OUTPUT->render($notification);
         }
 
         try {
-            //Get the day depending on the time. End of day, End of week or current day.
-            $finishing_time = new DateTime($config->endofday);
-            $current_time = new DateTime('now');
-
-            $isfriday = strcmp(date('D'), 'Fri') == 0;
-            if (($finishing_time < $current_time) && !$isfriday) { // EOD.
-                $date = utils::get_next_day(time());
-            } elseif (($finishing_time < $current_time) && $isfriday) { //EOW.
-                $date = utils::get_next_day(time(), 3);
-            } else { // Today.
-                $date = date('Y-m-d', time());
+            $data = init_timetable($this->instance->id);
+            if ($data) {
+                $this->content->text = $OUTPUT->render_from_template('block_my_day_timetable/content', $data);
             }
-
-            // Generate the new timetable.
-            $nav = -1;
-            list($props, $relateds) = get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $this->instance->id);
-
-            if (!empty($props)) {
-                $timetable = new block_my_day_timetable\external\timetable_exporter($props, $relateds);
-                $this->content->text = $OUTPUT->render_from_template('block_my_day_timetable/content', $timetable->export($OUTPUT));
-            }
-
-
         } catch (Exception $e) {
-            //var_dump($e); exit;
-            $this->content->text .= '<h5>' . get_string('timetableunavailable', 'block_my_day_timetable') . '</h5>';
+            $this->content->text = '<h5>' . get_string('timetableunavailable', 'block_my_day_timetable') . '</h5>';
+
         }
 
         return $this->content;
@@ -242,7 +139,7 @@ class block_my_day_timetable extends block_base {
         parent::get_required_javascript();
         $this->page->requires->js_call_amd('block_my_day_timetable/control', 'init', [
             'instanceid' => $this->instance->id,
-            'date' => time(),
+            'date' => date('Y-m-d', time()),
             'preference' => get_user_preferences('block_my_day_timetable_collapsed'),
             'userid' => $USER->id,
             'title' => $config->title,

@@ -1,38 +1,11 @@
 /*****
 * General layout
 ******/
-.block_my_day_timetable {
-    border: 0 none !important;
-    padding-top: 4px;
-}
-.block_my_day_timetable .card-title {
-    display: none;
-}
-.block_my_day_timetable.block_with_controls .card-title {
-    display: block;
-}
-.block_my_day_timetable .card-body {
-    padding: 0 !important;
-}
-.block_my_day_timetable .block-controls {
-    z-index: 1;
-    position: relative;
-}
-.block_my_day_timetable .day.isloading {
-    height: 1px;
-    overflow: hidden;
-    opacity: 0;
-}
-.block_my_day_timetable .day {
-    position: relative;
-    opacity: 1;
-}
 .block_my_day_timetable .period {
     width: 100%;
     float: left;
     position: relative;
     background-color: #000;
-    max-width: 400px;
 }
 .block_my_day_timetable a.classinfo {
     display: block;
@@ -175,12 +148,12 @@
 /*****
 * Stacked view.
 ******/
-.block_my_day_timetable .day.view-stacked a.classinfo {
+.block_my_day_timetable .day a.classinfo {
     border-right: 0;
     height: 38px;
     position: relative;
 }
-.block_my_day_timetable .day.view-stacked .classdesc {
+.block_my_day_timetable .day .classdesc {
     line-height: 19px;
     display: inline-block;
     overflow: hidden;
@@ -191,7 +164,7 @@
     max-width: 270px;
     margin-left: 60px;
 }
-.block_my_day_timetable .day.view-stacked .time {
+.block_my_day_timetable .day .time {
     position: absolute;
     left: 0;
     padding: 8px 0;
@@ -202,7 +175,7 @@
     color: #fff;
     font-weight: 600;
 }
-.block_my_day_timetable .day.view-stacked .teacherphoto {
+.block_my_day_timetable .day .teacherphoto {
     top: 0px;
     right: 0px;
     border-radius: 0;
@@ -211,110 +184,37 @@
     width: 38px;
 }
 
-/*****
-* Minimal view.
-******/
-.block_my_day_timetable .day.view-minimal .classdesc {
-    margin-right: 0;
-}
-.block_my_day_timetable .day.view-minimal .teacherphoto {
-    top: 11px;
-    right: 5px;
-}
-
-/*****
-* Wrapped view
-******/
-.block_my_day_timetable .day.view-wrapped .period.inprogress {
-    margin-bottom: 8px;
-}
-.block_my_day_timetable .day.view-wrapped .period.upcoming {
-    margin-bottom: 12px;
-}
-.block_my_day_timetable .day.view-wrapped .period.completed {
-    margin-bottom: 12px;
-}
-
-/*****
-* Full view.
-******/
-.block_my_day_timetable .day.view-full .period.break .classdesc {
-    margin-right: 0;
-}
-
-/****
-* Visibility
-******/
-.block_my_day_timetable .timetable-maximised .timetable-visible {
-    display: none;
-}
-.block_my_day_timetable .timetable-minimised .timetable-invisible {
-    display: none;
-}
-.block_my_day_timetable .timetable-minimised a.timetable-prev {
-    display: none;
-}
-.block_my_day_timetable .timetable-minimised a.timetable-next {
-    display: none;
-}
-.block_my_day_timetable .timetable-minimised .period {
-    display: none;
-}
 
 /****
 * Navigation
 *****/
 .block_my_day_timetable .timetable-controls {
-    margin-bottom: 10px;
-    text-align: right;
+    margin-bottom: 5px;
+    text-align: left;
+    height: 44px;
+}
+.block_my_day_timetable .timetable-controls a.timetable-prev {
+    padding: 0 0 0 15px;
+}
+.block_my_day_timetable .timetable-controls a.timetable-next {
+    padding: 0 15px 0 15px;
+    margin-left: 10px;
 }
 .block_my_day_timetable .timetable-title {
     font-weight: 600;
-    font-size: 1.1rem;
-    margin-left: 15px;
-
+    font-size: 18px;
+    margin-left: 5px;
+    display: inline-block;
+    vertical-align: bottom;
+    line-height: 49px;
 }
-
+.block_my_day_timetable .timetable-actions {
+    display: inline-block;
+    float: right;
+    margin-right: 5px;
+}
 .block_my_day_timetable .timetable-term {
     font-weight: 600;
     font-size: 1.1rem;   
     float:left;
-}
-.block_my_day_timetable .spinner {
-    display: none;
-    bottom: -3px;
-    position: relative;
-}
-.block_my_day_timetable .fetchingdata .spinner {
-    display: inline-block;
-}
-.block_my_day_timetable .spinner .circle {
-    display: inline-block;
-    position: relative;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 1px solid transparent;
-    border-top-color: #000;
-    border-left-color: #000;
-    text-indent: -9999px;
-    margin: 0 auto;
-}
-.block_my_day_timetable .spinner .spin {
-  -webkit-animation: spin 0.4s linear 0s infinite;
-  -moz-animation: spin 0.4s linear 0s infinite;
-  -o-animation: spin 0.4s linear 0s infinite;
-  animation: spin 0.4s linear 0s infinite;
-}
-@-webkit-keyframes spin {
-    from { -webkit-transform: rotate(0deg); }
-    to { -webkit-transform: rotate(360deg); }
-}
-@-moz-keyframes spin {
-    from { -moz-transform: rotate(0deg); }
-    to { -moz-transform: rotate(360deg); }
-}
-@keyframes spin {
-    from {transform:rotate(0deg);}
-    to {transform:rotate(360deg);}
 }

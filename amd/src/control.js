@@ -18,7 +18,7 @@
  *
  * @package   block_my_day_timetable
  * @category  output
- * @copyright 2019 Michael Vangelovski, Canberra Grammar School <michael.vangelovski@cgs.act.edu.au>
+ * @copyright 2020 Michael Vangelovski
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -56,7 +56,7 @@ define(['jquery', 'core/log', 'core/pubsub', 'core/ajax', 'core/str'], function(
         self.date = date;
         self.region = region;
         self.userid = userid;
-        self.instanceid = instanceid;
+        self.instanceid = parseInt(instanceid);
         self.displaypreference = displaypreference;
         self.title = title;
         self.role = region.data("timetablerole");
@@ -74,9 +74,8 @@ define(['jquery', 'core/log', 'core/pubsub', 'core/ajax', 'core/str'], function(
         self.refreshPeriodLayout();
         self.region.removeClass('isloading');
 
-        self.navigatePreviousDay();
-        self.navigateNextDay();
-        self.timetableVisibility();
+        // Setup nav events
+        self.setupEvents();
 
         // Watch resize to adjust width.
         $(window).on('resize', function(){
@@ -89,6 +88,39 @@ define(['jquery', 'core/log', 'core/pubsub', 'core/ajax', 'core/str'], function(
             self.refreshPeriodLayout();
         });
     };
+
+    DailyTimetableControl.prototype.setupEvents = function () {
+        var self = this;
+        // Unbind all existing events.
+        $('#inst' + self.instanceid + '.block_my_day_timetable').unbind();
+        
+        // Set up navigation events.
+        $('#inst' + self.instanceid + '.block_my_day_timetable').on('click', '.timetable-prev', function () {
+            self.navigate(0);
+        });
+        $('#inst' + self.instanceid + '.block_my_day_timetable').on('click', '.timetable-next', function () {
+            self.navigate(1);
+        });
+
+        // Hide timetable
+        $('#inst' + self.instanceid + '.block_my_day_timetable').on('click', '.timetable-invisible', function () {
+            self.region.removeClass('timetable-maximised');
+            self.region.addClass('timetable-minimised');
+            //Title
+            self.region.find('.timetable-title').text(self.title);
+            self.savePreferences(1);
+        });
+
+        // Show timetable
+        $('#inst' + self.instanceid + '.block_my_day_timetable').on('click', '.timetable-visible', function () {
+            self.region.removeClass('timetable-minimised');
+            self.region.addClass('timetable-maximised');
+            //Title
+            self.region.find('.timetable-title').text(self.region.data('timetableday'));
+            self.savePreferences(0);
+            self.refreshPeriodLayout();
+        });
+    }
 
     /**
      * Determine period widths.
@@ -137,104 +169,35 @@ define(['jquery', 'core/log', 'core/pubsub', 'core/ajax', 'core/str'], function(
         self.region.find('.period.break').css({"width": breakWidth});
     };
 
-     /**
-     * Navigate to previous day.
-     *
-     * @method
-     */
-    DailyTimetableControl.prototype.navigatePreviousDay = function () {
-        var self = this;
-        var instanceid = parseInt(self.instanceid);
-
-        $('#inst' + instanceid + '.block_my_day_timetable').on('click', '.timetable-prev', function () {
-            self.region.addClass('fetchingdata');
-            Ajax.call([{
-                methodname: 'block_my_day_timetable_get_timetable_for_date',
-                args: {
-                    timetableuser: self.username,
-                    timetablerole: self.role,
-                    nav: 0,
-                    date: self.date,
-                    instanceid: instanceid
-                },
-                done:function(response){
-                    Log.debug(('Timetable values retrieved successfuly.'));
-                    self.refreshLayout(response.html);
-                },
-                fail: function(reason) {
-                    Log.error('block_my_day_timetable. NavigatePreviousDay: Unable to get timetable.');
-                    Log.debug(reason);
-                    self.timetableUnavailable();
-                }
-            }]);
-        });
-    };
-
     /**
      * Navigate to Next day.
      *
      * @method
      */
-    DailyTimetableControl.prototype.navigateNextDay = function () {
+    DailyTimetableControl.prototype.navigate = function (direction) {
         var self = this;
-        var instanceid = parseInt(self.instanceid);
-
-        $('#inst' + instanceid + '.block_my_day_timetable').on('click', '.timetable-next', function () {
-            self.region.addClass('fetchingdata');
-            Log.debug('Nav next day user: ' + self.user + ' Role: ' + self.role + ' Date: ' + self.date + 'instanceid' + instanceid);
-            Ajax.call([{
-                methodname: 'block_my_day_timetable_get_timetable_for_date',
-                args: {
-                    timetableuser: self.username,
-                    timetablerole: self.role,
-                    nav: 1,
-                    date: self.date,
-                    instanceid: self.instanceid
-                },
-                done:function(response){
-                    Log.debug(('Timetable values retrieved successfuly.'));
-                    self.refreshLayout(response.html);
-                },
-               fail: function(reason) {
-                    Log.error('block_my_day_timetable. NavigateNextDay: Unable to get timetable.');
-                    Log.debug(reason);
-                    self.timetableUnavailable();
-                }
-            }]);
-        });
-    };
-
-    /**
-     * Hide/show Timetable
-     *
-     * @method
-     */
-    DailyTimetableControl.prototype.timetableVisibility = function(){
-        var self = this;
-
-        // Close
-        $('#inst' + self.instanceid + '.block_my_day_timetable').on('click', '.timetable-invisible', function () {
-            self.region.removeClass('timetable-maximised');
-            self.region.addClass('timetable-minimised');
-
-            //Title
-            self.region.find('.timetable-title').text(self.title);
-
-            self.savePreferences(1);
-        });
-
-        // Open
-        $('#inst' + self.instanceid + '.block_my_day_timetable').on('click', '.timetable-visible', function () {
-            self.region.removeClass('timetable-minimised');
-            self.region.addClass('timetable-maximised');
-
-            //Title
-            self.region.find('.timetable-title').text(self.region.data('timetableday'));
-
-            self.savePreferences(0);
-            self.refreshPeriodLayout();
-        });
-
+        self.region.addClass('fetchingdata');
+        var args = {
+            timetableuser: self.username,
+            timetablerole: self.role,
+            nav: direction,
+            date: self.date,
+            instanceid: self.instanceid
+        };
+        Log.debug('block_my_day_timetable/content: Navigate timetable: ' + JSON.stringify(args));
+        Ajax.call([{
+            methodname: 'block_my_day_timetable_get_timetable_html_for_date',
+            args: args,
+            done:function(response){
+                Log.debug(('Timetable values retrieved successfuly.'));
+                self.refreshLayout(response.html);
+            },
+           fail: function(reason) {
+                Log.error('block_my_day_timetable. NavigateNextDay: Unable to get timetable.');
+                Log.debug(reason);
+                self.timetableUnavailable();
+            }
+        }]);
     };
 
     DailyTimetableControl.prototype.savePreferences = function(value)    {
@@ -266,11 +229,13 @@ define(['jquery', 'core/log', 'core/pubsub', 'core/ajax', 'core/str'], function(
         self.region.fadeOut(300, function() {
             self.region.replaceWith(htmlResult);
             self.region.show();
-            self.region =  $('[data-region="block_my_day_timetable-instance-' + self.instanceid +'"]');
+            self.region = $('[data-region="block_my_day_timetable-instance-' + self.instanceid +'"]');
+            self.setupEvents();
             self.date = self.region.data("timetabledate");
             self.region.removeClass('isloading');
             self.region.removeClass('fetchingdata');
             self.refreshPeriodLayout();
+
         });
     };
 

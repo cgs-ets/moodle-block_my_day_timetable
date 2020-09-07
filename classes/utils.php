@@ -58,42 +58,37 @@ class utils {
     /**
      * Get the previous day.
      *
-     * @param int $daytimestamp The day timestamp.
-     * @param int $days. Number of days to subtract.
-     * @param int $astimestamp. Whether to return the date as a timestamp.
-     * @return date|int. Date in Y-m-d or timestamp.
+     * @param string $date. Date in Y-m-d.
+     * @return string. Date in Y-m-d.
      */
-    public static function  get_prev_day($daytimestamp, $days = 1, $astimestamp = false) {
-        $date = new \DateTime();
-        $date->setTimestamp($daytimestamp);
-        $date->modify('-' . $days . ' day');
-
-        if ($astimestamp) {
-            return $date->getTimestamp();
+    public static function get_prev_day($date) {
+        $dayofweek = date('D', strtotime($date));
+        $date = new \DateTime($date);
+        if ($dayofweek == 'Mon') {
+            $date->modify('-3 day');
+        } else {
+            $date->modify('-1 day');
         }
-
         return date('Y-m-d', $date->getTimestamp());
     }
 
     /**
      * Get the next day.
-     * If $days > 0 get the next business day.
-     * @param int $daytimestamp The day timestamp.
-     * @param int $days. Number of days to add.
-     * @param int $astimestamp. Whether to return the date as a timestamp.
-     * @return date|int. Date in Y-m-d or timestamp.
+     *
+     * @param string $date. Date in Y-m-d.
+     * @return string. Date in Y-m-d.
      */
-      public static function get_next_day($daytimestamp, $days = 1, $astimestamp = false) {
-        $date = new \DateTime();
-        $date->setTimestamp($daytimestamp);
-        $date->modify('+' . $days . ' day');
-
-        if ($astimestamp) {
-            return $date->getTimestamp();
+    public static function get_next_day($date) {
+        $dayofweek = date('D', strtotime($date));
+        $date = new \DateTime($date);
+        if ($dayofweek == 'Fri') {
+            $date->modify('+3 day');
+        } else {
+            $date->modify('+1 day');
         }
-
         return date('Y-m-d', $date->getTimestamp());
     }
+
     /**
      * Return an array with all the 2 weeks intervals in a given term
      *
@@ -101,11 +96,11 @@ class utils {
      * @param type $term_finish
      * @return array.
      */
-    public static function getintervals($term_start, $term_finish) {
+    public static function get_intervals($term_start, $term_finish) {
         $day = new \DateTime('now');
         $start = $term_start;
         $intervals = array();
-        $weeksinterm = utils::getweeksinaterm($term_start, $term_finish);
+        $weeksinterm = utils::get_weeks_in_a_term($term_start, $term_finish);
 
 
         while ($weeksinterm > 0) {
@@ -132,7 +127,7 @@ class utils {
      * @param type $term_finish
      * @return int
      */
-    public static function getweeksinaterm($term_start, $term_finish){
+    public static function get_weeks_in_a_term($term_start, $term_finish){
         $countweeks = 1;
         $week = $term_start;
         $cw = 0;
@@ -145,46 +140,5 @@ class utils {
 
        return $cw;
     }
-
-    /**
-     * Return the number of days from a two weeks cycle, skipping weekends.     *
-     * @param type $intervals
-     * @return int
-     */
-    public static function gettermday($intervals,$day){
-        $processday = date('Y-m-d', $day);
-        $begincicle = '';
-        $endcycle = '';
-
-        // Get the week range to look at.
-        foreach($intervals as $start => $finish){
-            if ($processday >= $start && $processday < $finish){
-                $begincicle = $start;
-                $endcycle = $finish;
-                break;
-            }
-        }
-
-        $begincicle = new \DateTime($begincicle);
-        $endcycle = new \DateTime($endcycle);
-
-        $countdays= 1;
-        $cont = true;
-        $processday = new \DateTime($processday);
-
-        // Count the days. Skip Saturday and Sunday.
-        while($cont && $begincicle < $endcycle) {
-            if( $processday > $begincicle){
-                $begincicle = new  \DateTime(utils::get_next_day($begincicle->getTimestamp(),$cont));
-                if(strcmp(date('D',$begincicle->getTimestamp()),'Sat') != 0 &&
-                    strcmp(date('D',$begincicle->getTimestamp()),'Sun') != 0 ){
-                    $countdays++;
-
-                }
-            }else{
-                $cont = false;
-            }
-        }
-        return $countdays;
-    }
+    
 }

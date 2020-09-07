@@ -19,7 +19,7 @@
  *
  * @package   my_day_timetable
  * @category
- * @copyright 2020 Veronica Bermegui, Canberra Grammar School <veronica.bermegui@cgs.act.edu.au>
+ * @copyright 2020 Veronica Bermegui, Michael Vangelovski
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,6 +27,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 /** Include required files */
+require_once($CFG->dirroot . '/user/profile/lib.php');
 require_once($CFG->libdir.'/filelib.php');
 
 use block_my_day_timetable\utils;
@@ -53,51 +54,138 @@ function block_my_day_timetable_user_preferences() {
 }
 
 /**
- * Navigate timetable.
+ * Initial timetable
  *
  */
-function get_timetable_for_date($timetableuser, $timetablerole, $nav, $date, $instanceid) {
-    if ($nav != -1) {
-        $day = date('D', $date);
+function init_timetable($instanceid) {
+    global $COURSE, $DB, $USER, $PAGE, $OUTPUT;
+
+    $data = null;
+
+    $context = CONTEXT_COURSE::instance($COURSE->id);
+    $config = get_config('block_my_day_timetable');
+
+    // Initialise some defaults.
+    $timetableuser = $USER->username;
+    $timetablerole = '';
+    profile_load_custom_fields($USER);
+    $userroles = array_map('trim', explode(',', $USER->profile['CampusRoles']));
+
+    // Load in some config.
+    $studentroles = array_map('trim', explode(',', $config->studentroles));
+    $staffroles = array_map('trim', explode(',', $config->staffroles));
+
+    // Determine if user is viewing this block on a profile page.
+    if ( $PAGE->url->get_path() == '/user/profile.php' ) {
+        // Get the profile user.
+        $profileuser = $DB->get_record('user', ['id' => $PAGE->url->get_param('id')]);
+        $timetableuser = $profileuser->username;
+        // Load the user's custom profile fields.
+        profile_load_custom_fields($profileuser);
+        $profileroles = explode(',', $profileuser->profile['CampusRoles']);
+
+        // Check whether the timetable should be displayed for this profile user.
+        // E.g. Senior student's and staff.
+        if (array_intersect($profileroles, $studentroles)) {
+            $timetablerole = 'student';
+        }
+        elseif (array_intersect($profileroles, $staffroles)) {
+            $timetablerole = 'staff';
+        }
+        else {
+            return null;
+        }
+
+        // Determine who is allowed to view this timetable.
+        $allowed = false;
+
+        // Staff are always allowed to view timetables in profiles.
+        if (array_intersect($userroles, $staffroles)) {
+            $allowed = true;
+        }
+
+        // Students are allowed to see timetables in their own profiles.
+        if ($profileuser->username == $USER->username) {
+            $allowed = true;
+        }
+
+        // Parents are allowed to view timetables in their mentee profiles.
+        $mentorrole = $DB->get_record('role', array('shortname' => 'parent'));
+        $sql = "SELECT ra.*, r.name, r.shortname
+                FROM {role_assignments} ra 
+                INNER JOIN {role} r ON ra.roleid = r.id
+                INNER JOIN {user} u ON ra.userid = u.id
+                WHERE ra.userid = ? 
+                AND ra.roleid = ? 
+                AND ra.contextid IN (SELECT c.id
+                    FROM {context} c
+                    WHERE c.contextlevel = ?
+                    AND c.instanceid = ?)";
+        $params = array(
+            $USER->id, //Where current user
+            $mentorrole->id, // is a mentor
+            CONTEXT_USER,
+            $profileuser->id, // of the prfile user
+        );
+        $mentor = $DB->get_records_sql($sql, $params);
+        if ( !empty($mentor) ) {
+            $allowed = true;
+        }
+
+        if ( !$allowed ) {
+            return null;
+        }
+
+    } else {
+        // Check whether the timetable should be displayed for this user.
+        if (array_intersect($userroles, $studentroles)) {
+            $timetablerole = 'student';
+        } 
+        elseif (array_intersect($userroles, $staffroles)) {
+            $timetablerole = 'staff';
+        }
+        else {
+            return null;
+        }
     }
 
-    $nav_date = $date;
-
-    switch($nav) {
-       case 0: //backwards
-            //Check if the previous day is a working day
-            if (strcmp($day,'Mon') == 0) {
-                $date = utils::get_prev_day($nav_date, 3);
-                $nav_date = utils::get_prev_day($nav_date, 3, true);
-            } else {
-                $date = utils::get_prev_day($nav_date);
-                $nav_date = utils::get_prev_day($nav_date, 1, true);
-            }
-            break;
-
-       case 1: //Forward
-            if (strcmp($day,'Fri') == 0) {
-                $date = utils::get_next_day($nav_date, 3);
-                $nav_date= utils::get_next_day($nav_date, 3, true);
-            } else {
-                $date = utils::get_next_day($nav_date);
-                $nav_date= utils::get_next_day($nav_date, 1, true);
-            }
-            break;
+    $date = date('Y-m-d', time());
+    // Check if it is the end of the day.
+    $endofday = new DateTime($config->endofday);
+    $current_time = new DateTime('now');
+    if ($current_time > $endofday) {
+        $date = utils::get_next_day($date);
     }
 
-    return $timetabledata = get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $nav, $instanceid);
+    // Generate the new timetable.
+    $nav = -1;
+    list($props, $relateds) = navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instanceid);
 
+    if (!empty($props)) {
+        $timetable = new block_my_day_timetable\external\timetable_exporter($props, $relateds);
+        $data = $timetable->export($OUTPUT);
+    }
+
+    return $data;
 }
 
 /**
- * Auxiliary function to get timetable data from external source.
+ * Navigate timetable.
  *
  */
-function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $nav, $instanceid) {
+function navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instanceid) {
     global $USER;
 
-    try{
+    switch($nav) {
+       case 0: //backwards
+            $date = utils::get_prev_day($date);
+            break;
+       case 1: //Forward
+            $date = utils::get_next_day($date);
+            break;
+    }
+
+    try {
         //Get  config of this block.
         $config = get_config('block_my_day_timetable');
 
@@ -116,20 +204,21 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
 
         $timetabledata = $externalDB->get_records_sql($sql, $params);
 
-        //Only look for available days when navigating the timetable.
+        // For staff that don't have timetables, hide block on initial load.
+        if ($nav == -1 && empty($timetabledata)) {
+            return;
+        }
+
+        // If data is empty and attempting to navigate cal, look for next available timetable day.
         if ($nav == 0 || $nav == 1) {
             $days = 0;
-            while(empty($timetabledata) && $days <= 30) {
+            while(empty($timetabledata) && $days <= 30) { // Look ahead a max of 30 days.
                 $days++;
-
                 if ($nav == 1) {
-                   $date = utils::get_next_day($nav_date);
-                   $nav_date= utils::get_next_day($nav_date, 1, true);
+                    $date = utils::get_next_day($date);
                 } else {
-                    $date = utils::get_prev_day($nav_date);
-                    $nav_date = utils::get_prev_day($nav_date, 1, true);
+                    $date = utils::get_prev_day($date);
                 }
-
                 $params = array(
                     'id' => $timetableuser,
                     'date' => $date,
@@ -138,8 +227,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
             }
         }
 
-        // For staff that don't have timetables, hide block on initial load.
-        if ($nav == -1 && empty($timetabledata)) {
+        if (empty($timetabledata)) {
             return;
         }
 
@@ -160,15 +248,7 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
 
         // Get current term details. Only for staff.
         if ($timetablerole == 'staff') {
-            $daytoprocess;
-
-            if (!is_string($nav_date)) {
-                $daytoprocess = date('Y-m-d',$nav_date);
-            }else{
-                $daytoprocess = $nav_date;
-            }
-
-            $termdetails = getterminformationdetails($externalDB, $daytoprocess, $timetabledata);
+            $termdetails = get_term_information($externalDB, $date, $timetabledata);
             $termfinished = false;
             if ($termdetails == null){
                 $termfinished = true;
@@ -177,23 +257,20 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
 
         // Set the user preference to collapse or show the timetable.
         $userpreference = get_user_preferences('block_my_day_timetable_collapsed', 0, $USER);
-
-
         $props = (object) [
             'instanceid' => $instanceid,
             'role' => $timetablerole,
             'showprogressbar' => $config->showprogressbar,
             'user' => $timetableuser,
-            'date' => $nav_date,
+            'date' =>  $date,
             'hide' =>  $userpreference,
             'fromws' => ($nav == -1) ? false : true, // To remove the loading class when the tt is render.
-            'day' => ($nav == -1) ? daytodisplay() : date('l, j F Y', $nav_date), //Show Day, Number Month Year.
+            'day' => date('l, j F Y', strtotime($date)), //Show Day, Number Month Year.
             'termnumber' => ($timetablerole == 'staff') ? $termdetails['termnumber'] : '',
             'termweek'   => ($timetablerole == 'staff') ? $termdetails['termweek'] : '',
             'termday'    => ($timetablerole == 'staff') ? $termdetails['termday'] : '',
             'termfinished' => ($timetablerole == 'staff') ? $termfinished : true,  // For students always set to true. This way the template doesnt display term details.
         ];
-
         $relateds = [
             'timetabledata' => $timetabledata,
             'timetablecolours' => '{' . rtrim($config->timetablecolours, ',') . '}',
@@ -203,15 +280,15 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
             'timetablerole'=> $timetablerole,
             'timetableuser'=> $timetableuser,
         ];
-
         $timetabledata = array($props, $relateds);
 
     } catch (Exception $ex) {
-
         throw new Exception($ex->getMessage());
     }
 
     return $timetabledata;
+
+
 }
 
 /**
@@ -220,35 +297,27 @@ function get_timetable_aux($timetableuser, $timetablerole, $date, $nav_date, $na
  * @param DateTime $processday
  * @return int
  */
-function getterminformationdetails($externalDB, $processday, $timetabledata){
+function get_term_information($externalDB, $processday, $timetabledata){
     $config = get_config('block_my_day_timetable');
     $sql = 'EXEC ' . $config->dbtermproc;
     $r = $externalDB->get_records_sql($sql);
     $r = ($r[(key($r))]);
-
     $term_start = new DateTime($r->startdate);
     $term_finish = new DateTime($r->enddate);
-
     $processday = new DateTime($processday);
 
     // Check if the term finished. If that is the case, then return empty values.
-    if(istermfinished($processday, $term_start, $term_finish)){
+    if(is_term_finished($processday, $term_start, $term_finish)){
         return null;
-    }else{
-
-        $intervals = utils::getintervals($term_start, $term_finish);
+    } else {
+        $intervals = utils::get_intervals($term_start, $term_finish);
         $termday = (current($timetabledata)->definitionday);
-
         $weeks = date_diff($processday, $term_start, true);
-
         $weeks = (floor(($weeks->days / 6)) == 0) ? 1 : floor($weeks->days / 6);
-
-        $weeksinterm = utils::getweeksinaterm($term_start, $term_finish);
-
+        $weeksinterm = utils::get_weeks_in_a_term($term_start, $term_finish);
         if ($weeks > $weeksinterm ){
             $weeks = $weeksinterm;
         }
-
         $terminfo = ['termnumber' => $r->filesemester,
             'termweek' =>  $weeks,
             'termday' => $termday,
@@ -256,8 +325,8 @@ function getterminformationdetails($externalDB, $processday, $timetabledata){
     }
 
     return $terminfo;
-
 }
+
 /**
  * Helper function checks if the day that is being processed is after the date
  * a term finishes or earlier than the starting day of a term.
@@ -267,7 +336,7 @@ function getterminformationdetails($externalDB, $processday, $timetabledata){
  * @param type $term_finished
  * @return boolean
  */
-function istermfinished($processday, $term_start, $term_finished){
+function is_term_finished($processday, $term_start, $term_finished){
     $processday = date('Y-m-d',$processday->getTimestamp());
     $term_start = date('Y-m-d',$term_start->getTimestamp());
     $term_finished = date('Y-m-d',$term_finished->getTimestamp());
@@ -276,26 +345,4 @@ function istermfinished($processday, $term_start, $term_finished){
         return true;
     }
     return false;
-}
-
-/**
- * At the end of the day, refresh the Date displayed at the top of the table
- * to the next day. To avoid confusion of showing next day TT and today date.
- */
-function daytodisplay(){
-    $config = get_config('block_my_day_timetable');
-
-    $finishing_time = new DateTime($config->endofday);
-    $current_time = new DateTime('now');
-    $isfriday = strcmp(date('D'), 'Fri') == 0;
-
-    if (($finishing_time < $current_time) && !$isfriday) { // EOD.
-        $date = date('l, j F Y', utils::get_next_day(time(), 1, true));
-    } elseif (($finishing_time < $current_time) && $isfriday) { //EOW.
-        $date = date('l, j F Y', utils::get_next_day(time(), 3, true));
-    } else { // Today.
-        $date = date('l, j F Y', time());
-    }
-    return $date;
-
 }

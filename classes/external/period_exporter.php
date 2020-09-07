@@ -110,9 +110,6 @@ class period_exporter extends exporter {
             'progressamount' => [
                 'type' => PARAM_INT,
             ],
-            'url' => [
-                'type' => PARAM_RAW,
-            ],
             'classcolor' => [
                 'type' => PARAM_RAW,
             ],
@@ -189,12 +186,10 @@ class period_exporter extends exporter {
         if ( $this->data->staffid ) {
             $teacher = $DB->get_record('user', array('username'=>$this->data->staffid));
             if ($teacher) {
-                $otherdata['teacherphoto'] = new moodle_url('/user/pix.php/'.$teacher->id.'/f2.jpg');
+                $photo = new moodle_url('/user/pix.php/'.$teacher->id.'/f2.jpg');
+                $otherdata['teacherphoto'] = $photo->out(false);
             }
         }
-        
-        // Find and add course link based on class code
-        $otherdata['url'] = '';
 
         // Add formatted times
         $otherdata['starttime'] = date('G:i',strtotime($this->data->sorttime));
@@ -222,9 +217,4 @@ class period_exporter extends exporter {
             $data['progressamount'] = 100;
         }
     }
-    
-   
-    
-    
-
 }

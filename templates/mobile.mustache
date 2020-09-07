@@ -1,0 +1,63 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+    @package   block_my_day_timetable
+    @copyright 2020 Michael Vangelovski
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+{{!
+    @template block_my_day_timetable/mobile
+
+    Template for mobile app.
+}}
+{{=<% %>=}}
+<div class="day times {{CONTENT_OTHERDATA.timetable.role}}"
+    [attr.data-region]="'block_my_day_timetable-instance-'+CONTENT_OTHERDATA.timetable.instanceid" 
+    [attr.data-num-periods]="CONTENT_OTHERDATA.timetable.numperiods" 
+    [attr.data-num-breaks]="CONTENT_OTHERDATA.timetable.numbreaks" 
+    [attr.data-timetableday]="CONTENT_OTHERDATA.timetable.day" 
+    [attr.data-timetabledate]="CONTENT_OTHERDATA.timetable.date" 
+    [attr.data-timetableuser]="CONTENT_OTHERDATA.timetable.user" 
+    [attr.data-timetablerole]="CONTENT_OTHERDATA.timetable.role">
+    <div class="timetable-controls">
+        <span *ngIf="termfinished == false" class="timetable-term">Term {{CONTENT_OTHERDATA.timetable.termnumber}} Week {{CONTENT_OTHERDATA.timetable.termweek}} Day {{CONTENT_OTHERDATA.timetable.termday}}</span>
+        <span class="timetable-title">{{CONTENT_OTHERDATA.timetable.day}}</span>
+        <div class="timetable-actions">
+            <button ion-button (click)="navigate(0)" class="timetable-prev" title="Previous Day"><i class="icon fa fa-chevron-left icon-large" aria-hidden="true" aria-label="Prev"></i></button>
+            <button ion-button (click)="navigate(1)" class="timetable-next" title="Next Day"><i class="icon fa fa-chevron-right icon-large" aria-hidden="true" aria-label="Next"></i></button>
+        </div>
+    </div>
+
+    <div *ngFor="let period of CONTENT_OTHERDATA.timetable.periods">
+        <div [attr.data-period]="period.period" class="period {{period.progressstatus}} {{period.extrahtmlclasses}}">
+            <a core-link capture="true" [ngStyle]="{'background-color':period.classcolor}" class="classinfo" href="{{period.courselink ? period.courselink : ''}}"  title="{{period.classdescription}} {{period.starttime}} - {{period.endtime}} {{period.room}}">
+                <span class="classdesc">
+                    <div *ngIf="period.altdescription; else elseBlock">{{period.altdescription}}</div>
+                    <ng-template #elseBlock>{{period.classdescription}}</ng-template>
+                    <span *ngIf="CONTENT_OTHERDATA.timetable.isstaff" class="classcode">{{period.classcode}}</span>
+                </span>
+                <span class="time">{{period.starttime}}</span>
+                <span *ngIf="period.room" class="room">{{period.room}}</span>
+                <span *ngIf="(CONTENT_OTHERDATA.timetable.isstudent && period.teacherphoto)" class="teacherphoto"><img [src]="period.teacherphoto" /></span>
+            </a>
+            <div *ngIf="showprogressbar" class="progress-track"><div class="progress-bar" [ngStyle]="{'width':period.progressamount+'%'}"></div></div>
+        </div>
+    </div>
+
+</div>
+
+
+

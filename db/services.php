@@ -18,21 +18,31 @@
  * Plugin external functions and services are defined here.
  *
  * @package   my_day_timetable
- * @category    external
- * @copyright 2020 Veronica Bermegui, Canberra Grammar School <veronica.bermegui@cgs.act.edu.au>
+ * @category  external
+ * @copyright 2020 Veronica Bermegui, Michael Vangelovski
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'block_my_day_timetable_get_timetable_for_date' => [
+    'block_my_day_timetable_get_timetable_html_for_date' => [
         'classname' => 'block_my_day_timetable\external\api', // Class containing a reference to the external function.
-        'methodname' =>'get_timetable_for_date', // External function name.
+        'methodname' =>'get_timetable_html_for_date', // External function name.
         'classpath' => '',
         'description' => 'Navigate timetable backward and forward', // Human readable description of the WS function.
         'type' => 'read', // DB rights of the WS function.
         'loginrequired' => true,
-        'ajax' => true    // Is this service available to 'internal' ajax calls.  
+        'ajax' => true, // Is this service available to 'internal' ajax calls.  
+    ],
+    'block_my_day_timetable_get_timetable_data_for_date' => [
+        'classname' => 'block_my_day_timetable\external\api', // Class containing a reference to the external function.
+        'methodname' =>'get_timetable_data_for_date', // External function name.
+        'classpath' => '',
+        'description' => 'Navigate timetable backward and forward', // Human readable description of the WS function.
+        'type' => 'read', // DB rights of the WS function.
+        'loginrequired' => true,
+        'ajax' => true, // Is this service available to 'internal' ajax calls.  
+        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE, 'local_mobile'],
     ],
 ];
