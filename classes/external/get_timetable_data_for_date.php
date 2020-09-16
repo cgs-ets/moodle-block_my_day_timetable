@@ -142,7 +142,7 @@ trait get_timetable_data_for_date {
                 'numperiods' => new external_value(PARAM_INT,'Number of periods in the day'),
                 'numbreaks' => new external_value(PARAM_INT,'Number of breaks in the day'),
                 'isstaff' => new external_value(PARAM_BOOL,'Whether the timetable user is a staff member or not'),
-                'isstudent' => new external_value(PARAM_INT,'Whether the timetable user is a student member or not'),
+                'isstudent' => new external_value(PARAM_BOOL,'Whether the timetable user is a student member or not'),
             )
         );
     }
