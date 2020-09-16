@@ -131,7 +131,7 @@ function get_timetable_user($userroles, $studentroles, $staffroles) {
 }
 
 function can_view_on_profile($userroles, $staffroles) {
-    global $COURSE, $DB, $USER, $PAGE, $OUTPUT;
+    global $DB, $USER;
 
     // Staff are always allowed to view timetables in profiles.
     if (array_intersect($userroles, $staffroles)) {

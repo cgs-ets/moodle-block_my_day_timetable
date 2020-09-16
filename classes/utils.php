@@ -102,9 +102,9 @@ class utils {
         $intervals = array();
         $weeksinterm = utils::get_weeks_in_a_term($term_start, $term_finish);
 
-
         while ($weeksinterm > 0) {
-            $finish = utils::get_next_day($start->getTimestamp(), 14);
+            $start->add(new \DateInterval('P14D'));
+            $finish = utils::get_next_day($start->format('Y-m-d'));
             $intervals[date('Y-m-d', $start->getTimestamp())] = $finish;
             $start = new \Datetime($finish);
             $day = $finish;
@@ -131,13 +131,12 @@ class utils {
         $countweeks = 1;
         $week = $term_start;
         $cw = 0;
-
         while($week < $term_finish) {
-            $week = new \DateTime(utils::get_next_day($term_start->getTimestamp(), (7 * $countweeks)));
+            $term_start->add(new \DateInterval('P' . (7 * $countweeks) . 'D'));
+            $week = new \DateTime(utils::get_next_day($term_start->format('Y-m-d')));
             $countweeks++;
             $cw++ ;
         }
-
        return $cw;
     }
     
