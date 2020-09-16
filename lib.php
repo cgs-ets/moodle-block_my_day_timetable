@@ -83,68 +83,17 @@ function init_timetable($instanceid) {
         // Load the user's custom profile fields.
         profile_load_custom_fields($profileuser);
         $profileroles = explode(',', $profileuser->profile['CampusRoles']);
-
-        // Check whether the timetable should be displayed for this profile user.
-        // E.g. Senior student's and staff.
-        if (array_intersect($profileroles, $studentroles)) {
-            $timetablerole = 'student';
-        }
-        elseif (array_intersect($profileroles, $staffroles)) {
-            $timetablerole = 'staff';
-        }
-        else {
+        // Get the timetable user.
+        if ( !$timetablerole = get_timetable_user($profileroles, $studentroles, $staffroles) ) {
             return null;
         }
-
-        // Determine who is allowed to view this timetable.
-        $allowed = false;
-
-        // Staff are always allowed to view timetables in profiles.
-        if (array_intersect($userroles, $staffroles)) {
-            $allowed = true;
-        }
-
-        // Students are allowed to see timetables in their own profiles.
-        if ($profileuser->username == $USER->username) {
-            $allowed = true;
-        }
-
-        // Parents are allowed to view timetables in their mentee profiles.
-        $mentorrole = $DB->get_record('role', array('shortname' => 'parent'));
-        $sql = "SELECT ra.*, r.name, r.shortname
-                FROM {role_assignments} ra 
-                INNER JOIN {role} r ON ra.roleid = r.id
-                INNER JOIN {user} u ON ra.userid = u.id
-                WHERE ra.userid = ? 
-                AND ra.roleid = ? 
-                AND ra.contextid IN (SELECT c.id
-                    FROM {context} c
-                    WHERE c.contextlevel = ?
-                    AND c.instanceid = ?)";
-        $params = array(
-            $USER->id, //Where current user
-            $mentorrole->id, // is a mentor
-            CONTEXT_USER,
-            $profileuser->id, // of the prfile user
-        );
-        $mentor = $DB->get_records_sql($sql, $params);
-        if ( !empty($mentor) ) {
-            $allowed = true;
-        }
-
-        if ( !$allowed ) {
+        // Check whether the current user can view the profile timetable.
+        if ( !can_view_on_profile($userroles, $staffroles) ) {
             return null;
         }
-
     } else {
-        // Check whether the timetable should be displayed for this user.
-        if (array_intersect($userroles, $studentroles)) {
-            $timetablerole = 'student';
-        } 
-        elseif (array_intersect($userroles, $staffroles)) {
-            $timetablerole = 'staff';
-        }
-        else {
+        // Get the timetable user.
+        if ( !$timetablerole = get_timetable_user($userroles, $studentroles, $staffroles) ) {
             return null;
         }
     }
@@ -167,6 +116,57 @@ function init_timetable($instanceid) {
     }
 
     return $data;
+}
+
+function get_timetable_user($userroles, $studentroles, $staffroles) {
+    // Check whether the timetable should be displayed for this profile user.
+    // E.g. Senior student's and staff.
+    if (array_intersect($userroles, $studentroles)) {
+        return 'student';
+    } elseif (array_intersect($userroles, $staffroles)) {
+        return 'staff';
+    }
+        
+    return null;
+}
+
+function can_view_on_profile($userroles, $staffroles) {
+    global $COURSE, $DB, $USER, $PAGE, $OUTPUT;
+
+    // Staff are always allowed to view timetables in profiles.
+    if (array_intersect($userroles, $staffroles)) {
+        return true;
+    }
+
+    // Students are allowed to see timetables in their own profiles.
+    if ($profileuser->username == $USER->username) {
+        return true;
+    }
+
+    // Parents are allowed to view timetables in their mentee profiles.
+    $mentorrole = $DB->get_record('role', array('shortname' => 'parent'));
+    $sql = "SELECT ra.*, r.name, r.shortname
+            FROM {role_assignments} ra 
+            INNER JOIN {role} r ON ra.roleid = r.id
+            INNER JOIN {user} u ON ra.userid = u.id
+            WHERE ra.userid = ? 
+            AND ra.roleid = ? 
+            AND ra.contextid IN (SELECT c.id
+                FROM {context} c
+                WHERE c.contextlevel = ?
+                AND c.instanceid = ?)";
+    $params = array(
+        $USER->id, //Where current user
+        $mentorrole->id, // is a mentor
+        CONTEXT_USER,
+        $profileuser->id, // of the prfile user
+    );
+    $mentor = $DB->get_records_sql($sql, $params);
+    if ( !empty($mentor) ) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
