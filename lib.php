@@ -283,6 +283,7 @@ function navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instan
         $timetabledata = array($props, $relateds);
 
     } catch (Exception $ex) {
+        //echo $ex->getMessage(); exit;
         throw new Exception($ex->getMessage());
     }
 
@@ -297,33 +298,33 @@ function navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instan
  * @param DateTime $processday
  * @return int
  */
-function get_term_information($externalDB, $processday, $timetabledata){
+/**
+ * Calculates the week and day of the terms.
+ * @param type $externalDB
+ * @param string $currentday
+ * @return int
+ */
+function get_term_information($externalDB, $currentday, $timetabledata){
     $config = get_config('block_my_day_timetable');
     $sql = 'EXEC ' . $config->dbtermproc;
-    $r = $externalDB->get_records_sql($sql);
-    $r = ($r[(key($r))]);
-    $term_start = new DateTime($r->startdate);
-    $term_finish = new DateTime($r->enddate);
-    $processday = new DateTime($processday);
+    $r = $externalDB->get_record_sql($sql);
 
     // Check if the term finished. If that is the case, then return empty values.
-    if(is_term_finished($processday, $term_start, $term_finish)){
+    if(is_term_finished(strtotime($currentday), strtotime($r->startdate), strtotime($r->enddate))) {
         return null;
-    } else {
-        //$intervals = utils::get_intervals($term_start, $term_finish);
-        $termday = (current($timetabledata)->definitionday);
-        $weeks = date_diff($processday, $term_start, true);
-        $weeks = (floor(($weeks->days / 6)) == 0) ? 1 : floor($weeks->days / 6);
-        $weeksinterm = utils::get_weeks_in_a_term($term_start, $term_finish);
-        if ($weeks > $weeksinterm ){
-            $weeks = $weeksinterm;
-        }
-        $terminfo = [
-            'termnumber' => $r->filesemester,
-            'termweek' =>  $weeks,
-            'termday' => $termday,
-        ];
     }
+
+    // Determine the week.
+    $firstmonday = date('Y-m-d', strtotime('previous monday', strtotime($r->startdate)));
+    $dayssincestart = date_diff(new DateTime($firstmonday), new DateTime($currentday));
+    $week = (int) floor($dayssincestart->days / 7);
+    $week = $week == 0 ? 1 : $week;
+
+    $terminfo = [
+        'termnumber' => $r->filesemester,
+        'termweek' =>  $week,
+        'termday' => current($timetabledata)->definitionday,
+    ];
 
     return $terminfo;
 }
@@ -332,16 +333,12 @@ function get_term_information($externalDB, $processday, $timetabledata){
  * Helper function checks if the day that is being processed is after the date
  * a term finishes or earlier than the starting day of a term.
  *
- * @param type $processday
- * @param type $term_start
- * @param type $term_finished
+ * @param int $processday
+ * @param int $term_start
+ * @param int $term_finished
  * @return boolean
  */
 function is_term_finished($processday, $term_start, $term_finished){
-    $processday = date('Y-m-d',$processday->getTimestamp());
-    $term_start = date('Y-m-d',$term_start->getTimestamp());
-    $term_finished = date('Y-m-d',$term_finished->getTimestamp());
-
     if($processday > $term_finished || $processday < $term_start){
         return true;
     }

@@ -96,7 +96,7 @@ class utils {
      * @param type $term_finish
      * @return array.
      */
-    public static function get_intervals($term_start, $term_finish) {
+    /*public static function get_intervals($term_start, $term_finish) {
         $day = new \DateTime('now');
         $start = $term_start;
         $intervals = array();
@@ -119,7 +119,7 @@ class utils {
         }
        
         return $intervals;
-    }
+    }*/
 
     /**
      * Returns the number of weeks in a term.
@@ -127,7 +127,7 @@ class utils {
      * @param type $term_finish
      * @return int
      */
-    public static function get_weeks_in_a_term($term_start, $term_finish){
+    /*public static function get_weeks_in_a_term($term_start, $term_finish){
         $countweeks = 1;
         $week = $term_start;
         $cw = 0;
@@ -138,6 +138,6 @@ class utils {
             $cw++ ;
         }
        return $cw;
-    }
+    }*/
     
 }
