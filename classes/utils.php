@@ -132,7 +132,7 @@ class utils {
         $week = $term_start;
         $cw = 0;
         while($week < $term_finish) {
-            $term_start->add(new \DateInterval('P' . (7 * $countweeks) . 'D'));
+            $term_start->add(new \DateInterval('P7D'));
             $week = new \DateTime(utils::get_next_day($term_start->format('Y-m-d')));
             $countweeks++;
             $cw++ ;

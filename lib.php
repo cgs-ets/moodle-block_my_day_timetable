@@ -310,7 +310,7 @@ function get_term_information($externalDB, $processday, $timetabledata){
     if(is_term_finished($processday, $term_start, $term_finish)){
         return null;
     } else {
-        $intervals = utils::get_intervals($term_start, $term_finish);
+        //$intervals = utils::get_intervals($term_start, $term_finish);
         $termday = (current($timetabledata)->definitionday);
         $weeks = date_diff($processday, $term_start, true);
         $weeks = (floor(($weeks->days / 6)) == 0) ? 1 : floor($weeks->days / 6);
@@ -318,7 +318,8 @@ function get_term_information($externalDB, $processday, $timetabledata){
         if ($weeks > $weeksinterm ){
             $weeks = $weeksinterm;
         }
-        $terminfo = ['termnumber' => $r->filesemester,
+        $terminfo = [
+            'termnumber' => $r->filesemester,
             'termweek' =>  $weeks,
             'termday' => $termday,
         ];
