@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2020031103;
+$plugin->version = 2020091600;
 $plugin->requires = 2010121000;
 $plugin->component = 'block_my_day_timetable';
 $plugin->maturity = MATURITY_BETA;
