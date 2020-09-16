@@ -200,6 +200,14 @@
     padding: 0 15px 0 15px;
     margin-left: 10px;
 }
+.block_my_day_timetable .timetable-term {
+    font-weight: 600;
+    font-size: 14px;
+    margin-left: 5px;
+    position: absolute;
+    top: -20px;
+    line-height: 49px;
+}
 .block_my_day_timetable .timetable-title {
     font-weight: 600;
     font-size: 18px;

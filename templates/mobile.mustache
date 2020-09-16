@@ -33,7 +33,7 @@
     [attr.data-timetableuser]="CONTENT_OTHERDATA.timetable.user" 
     [attr.data-timetablerole]="CONTENT_OTHERDATA.timetable.role">
     <div class="timetable-controls">
-        <span *ngIf="termfinished == false" class="timetable-term">Term {{CONTENT_OTHERDATA.timetable.termnumber}} Week {{CONTENT_OTHERDATA.timetable.termweek}} Day {{CONTENT_OTHERDATA.timetable.termday}}</span>
+        <span *ngIf="CONTENT_OTHERDATA.timetable.termfinished == false" class="timetable-term">Term {{CONTENT_OTHERDATA.timetable.termnumber}} Week {{CONTENT_OTHERDATA.timetable.termweek}} Day {{CONTENT_OTHERDATA.timetable.termday}}</span>
         <span class="timetable-title">{{CONTENT_OTHERDATA.timetable.day}}</span>
         <div class="timetable-actions">
             <button ion-button (click)="navigate(0)" class="timetable-prev" title="Previous Day"><i class="icon fa fa-chevron-left icon-large" aria-hidden="true" aria-label="Prev"></i></button>
