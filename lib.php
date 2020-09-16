@@ -317,8 +317,7 @@ function get_term_information($externalDB, $currentday, $timetabledata){
     // Determine the week.
     $firstmonday = date('Y-m-d', strtotime('previous monday', strtotime($r->startdate)));
     $dayssincestart = date_diff(new DateTime($firstmonday), new DateTime($currentday));
-    $week = (int) floor($dayssincestart->days / 7);
-    $week = $week == 0 ? 1 : $week;
+    $week = (int) floor($dayssincestart->days / 7) + 1;
 
     $terminfo = [
         'termnumber' => $r->filesemester,
