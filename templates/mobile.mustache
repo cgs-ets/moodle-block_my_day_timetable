@@ -51,7 +51,7 @@
                 </span>
                 <span class="time">{{period.starttime}}</span>
                 <span *ngIf="period.room" class="room">{{period.room}}</span>
-                <span *ngIf="(CONTENT_OTHERDATA.timetable.isstudent && period.teacherphoto)" class="teacherphoto"><img [src]="period.teacherphoto" /></span>
+                <span *ngIf="(CONTENT_OTHERDATA.timetable.isstudent && period.teacherphototokenised)" class="teacherphoto"><img [src]="period.teacherphototokenised" /></span>
             </a>
             <div *ngIf="showprogressbar" class="progress-track"><div class="progress-bar" [ngStyle]="{'width':period.progressamount+'%'}"></div></div>
         </div>
