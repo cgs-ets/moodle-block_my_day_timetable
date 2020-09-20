@@ -98,6 +98,9 @@ class period_exporter extends exporter {
             'teacherphoto' => [
                 'type' => PARAM_RAW,
             ],
+            'teacherphototokenised' => [
+                'type' => PARAM_RAW,
+            ],
             'starttime' => [
                 'type' => PARAM_RAW,
             ],
@@ -137,7 +140,7 @@ class period_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        global $DB;
+        global $DB, $PAGE;
 
         $otherdata = array();
 
@@ -183,11 +186,17 @@ class period_exporter extends exporter {
 
         // Add teacher photo to class
         $otherdata['teacherphoto'] = '';
+        $otherdata['teacherphototokenised'] = '';
         if ( $this->data->staffid ) {
             $teacher = $DB->get_record('user', array('username'=>$this->data->staffid));
             if ($teacher) {
                 $photo = new moodle_url('/user/pix.php/'.$teacher->id.'/f2.jpg');
                 $otherdata['teacherphoto'] = $photo->out(false);
+                // Tokenised teacher photo for mobile.
+                $userpicture = new \user_picture($teacher);
+                $userpicture->size = 1; // Use f1 size.
+                $userpicture->includetoken = $teacher->id; // Generate an out-of-session token for the user receiving the message.
+                $otherdata['teacherphototokenised'] = $userpicture->get_url($PAGE)->out(false);
             }
         }
 

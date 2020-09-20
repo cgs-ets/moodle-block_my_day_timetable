@@ -52,7 +52,8 @@ $capabilities = array(
             'editingteacher' => CAP_PROHIBIT,
             'coursecreator'  => CAP_PROHIBIT,
             'manager'        => CAP_PROHIBIT
-        ),    ),
+        ),    
+    ),
 
     // New standard capability 'edit'.
     'block/my_day_timetable:edit' => array(
