@@ -1,6 +1,9 @@
 /*****
 * General layout
 ******/
+.block_my_day_timetable {
+    overflow: hidden;
+}
 .block_my_day_timetable .period {
     width: 100%;
     float: left;
