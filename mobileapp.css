@@ -4,6 +4,7 @@
 .block_my_day_timetable {
     overflow: hidden;
     margin-bottom: 25px;
+    position: relative;
 }
 .block_my_day_timetable .period {
     width: 100%;
@@ -221,9 +222,11 @@
     line-height: 49px;
 }
 .block_my_day_timetable .timetable-actions {
-    display: inline-block;
-    float: right;
+    display: block;
     margin-right: 5px;
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 .block_my_day_timetable .timetable-term {
     font-weight: 600;
