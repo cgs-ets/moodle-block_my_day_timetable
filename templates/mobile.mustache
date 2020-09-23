@@ -45,8 +45,8 @@
         <div [attr.data-period]="period.period" class="period {{period.progressstatus}} {{period.extrahtmlclasses}}">
             <a core-link capture="true" [ngStyle]="{'background-color':period.classcolor}" class="classinfo" href="{{period.courselink ? period.courselink : ''}}"  title="{{period.classdescription}} {{period.starttime}} - {{period.endtime}} {{period.room}}">
                 <span class="classdesc">
-                    <div *ngIf="period.altdescription; else elseBlock">{{period.altdescription}}</div>
-                    <ng-template #elseBlock>{{period.classdescription}}</ng-template>
+                    <span class="classname" *ngIf="period.altdescription; else elseBlock">{{period.altdescription}}</span>
+                    <ng-template #elseBlock><span class="classname">{{period.classdescription}}</span></ng-template>
                     <span *ngIf="CONTENT_OTHERDATA.timetable.isstaff" class="classcode">{{period.classcode}}</span>
                 </span>
                 <span class="time">{{period.starttime}}</span>
@@ -58,6 +58,3 @@
     </div>
 
 </div>
-
-
-
