@@ -3,6 +3,7 @@
 ******/
 .block_my_day_timetable {
     overflow: hidden;
+    margin-bottom: 25px;
 }
 .block_my_day_timetable .period {
     width: 100%;
