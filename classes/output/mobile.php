@@ -45,23 +45,11 @@ class mobile {
         $course = get_course($args['instanceid']);
         $PAGE->set_course($course);
 
-        // The block instance is not passed in as an arg which sucks. 
-        // Borrowing from block_news, get all of the juicy block instance data.
-        $sql = "SELECT bi.id
-                  FROM {block_instances} bi
-                       JOIN {block} b ON bi.blockname = b.name
-                       LEFT JOIN {block_positions} bp ON bp.blockinstanceid = bi.id
-                           AND bp.contextid = ?
-                           AND bp.pagetype = ?
-                           AND bp.subpage = ?
-                 WHERE parentcontextid = ?
-                       AND blockname = ?
-              ORDER BY COALESCE(bp.region, bi.defaultregion),
-                       COALESCE(bp.weight, bi.defaultweight),
-                       bi.id";
-        $context = \context_course::instance($course->id);
-        $params = [$context->id, 'course-view-' . $course->format, '', $context->id, 'my_day_timetable'];
-        $blockinstanceid = $DB->get_field_sql($sql, $params, IGNORE_MULTIPLE);
+        $blockinstanceid = self::find_blockinstanceid($course, 'my_day_timetable');
+        if (empty($blockinstanceid)) {
+            // return early with no content.
+            return ['templates' => [['id' => 'timetable','html' => ' ']]];
+        }
 
         $OUTPUT = $PAGE->get_renderer('core');
         $data = init_timetable($blockinstanceid);
@@ -80,4 +68,64 @@ class mobile {
             ]
         ];
     }
+
+    /**
+     * Attempts to find the block instance id based on the course.
+     *
+     * @param array $course The course record
+     * @param string $blockname.
+     * @return int instance id.
+     */
+    public static function find_blockinstanceid($course, $blockname) {
+        global $DB;
+
+        $context = \context_course::instance($course->id);
+
+        // The block instance is not passed in as an arg which sucks. 
+        // This is a problem for blocks that support multiple instances as we can only select one.
+        $sql = "SELECT bi.id
+                  FROM {block_instances} bi
+                 WHERE parentcontextid = ?
+                   AND blockname = ? ";
+        $params = array($context->id, $blockname);
+
+        // Exclude hidden blocks.
+        $hiddenblockssql = "SELECT bi.id
+                              FROM {block_instances} bi
+                        INNER JOIN {block_positions} bp ON bp.blockinstanceid = bi.id
+                             WHERE bi.parentcontextid = ?
+                               AND bi.blockname = ?
+                               AND bp.contextid = ?
+                               AND bp.visible = 0
+                               AND (bp.pagetype = ? OR bp.pagetype = 'site-index')";
+        $hiddenblocksparams = array($context->id, $blockname, $context->id, 'course-view-' . $course->format);
+        $hiddenblocks = array_column($DB->get_records_sql($hiddenblockssql, $hiddenblocksparams), 'id');
+        if ($hiddenblocks) {
+            list($hiddenblockssql, $hiddenblocksparams) = $DB->get_in_or_equal($hiddenblocks);
+            $not = (strpos($hiddenblockssql, 'IN') !== false) ? 'NOT ' : '!';
+            $sql .= "AND bi.id $not$hiddenblockssql ";
+            $params = array_merge($params, $hiddenblocksparams);
+        }
+
+        // Exclude disabledblocks from tool_mobilecgs
+        $disabledblockssql = "SELECT value
+                FROM {config_plugins}
+                WHERE plugin = 'tool_mobilecgs'
+                AND name = 'disabledblocks'";
+        $disabledblocks = $DB->get_field_sql($disabledblockssql);
+        $disabledblocks = explode(',', $disabledblocks);
+        if ($disabledblocks) {
+            list($disabledblockssql, $disabledblocksparams) = $DB->get_in_or_equal($disabledblocks);
+            $not = (strpos($disabledblockssql, 'IN') !== false) ? 'NOT ' : '!';
+            $sql .= "AND bi.id $not$disabledblockssql ";
+            $params = array_merge($params, $disabledblocksparams);
+        }
+
+        // ORDER BY SQL
+        $sql .= "ORDER BY bi.id";
+        $blockinstanceid = $DB->get_field_sql($sql, $params, IGNORE_MULTIPLE);
+
+        return $blockinstanceid;
+    }
+
 }
