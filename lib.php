@@ -283,8 +283,7 @@ function navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instan
         $timetabledata = array($props, $relateds);
 
     } catch (Exception $ex) {
-        //echo $ex->getMessage(); exit;
-        throw new Exception($ex->getMessage());
+        //throw new Exception($ex->getMessage());
     }
 
     return $timetabledata;
