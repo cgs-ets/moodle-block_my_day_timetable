@@ -126,7 +126,7 @@ function get_timetable_user($userroles, $studentroles, $staffroles) {
     } elseif (array_intersect($userroles, $staffroles)) {
         return 'staff';
     }
-        
+
     return null;
 }
 
@@ -146,11 +146,11 @@ function can_view_on_profile($userroles, $staffroles) {
     // Parents are allowed to view timetables in their mentee profiles.
     $mentorrole = $DB->get_record('role', array('shortname' => 'parent'));
     $sql = "SELECT ra.*, r.name, r.shortname
-            FROM {role_assignments} ra 
+            FROM {role_assignments} ra
             INNER JOIN {role} r ON ra.roleid = r.id
             INNER JOIN {user} u ON ra.userid = u.id
-            WHERE ra.userid = ? 
-            AND ra.roleid = ? 
+            WHERE ra.userid = ?
+            AND ra.roleid = ?
             AND ra.contextid IN (SELECT c.id
                 FROM {context} c
                 WHERE c.contextlevel = ?
@@ -314,9 +314,11 @@ function get_term_information($externalDB, $currentday, $timetabledata){
     }
 
     // Determine the week.
-    $firstmonday = date('Y-m-d', strtotime('previous monday', strtotime($r->startdate)));
+    $startday = date('w', strtotime($r->startdate));
+    $firstmonday = ($startday > 1) ? date('Y-m-d', strtotime('previous monday', strtotime($r->startdate)))
+        : $r->startdate;
     $dayssincestart = date_diff(new DateTime($firstmonday), new DateTime($currentday));
-    $week = (int) floor($dayssincestart->days / 7) + 1;
+    $week = (int) floor($dayssincestart->days / 7 +1);
 
     $terminfo = [
         'termnumber' => $r->filesemester,
