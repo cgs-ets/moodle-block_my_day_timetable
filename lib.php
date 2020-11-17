@@ -88,7 +88,7 @@ function init_timetable($instanceid) {
             return null;
         }
         // Check whether the current user can view the profile timetable.
-        if ( !can_view_on_profile($userroles, $staffroles) ) {
+        if ( !can_view_on_profile($profileuser, $userroles, $staffroles) ) {
             return null;
         }
     } else {
@@ -130,7 +130,7 @@ function get_timetable_user($userroles, $studentroles, $staffroles) {
     return null;
 }
 
-function can_view_on_profile($userroles, $staffroles) {
+function can_view_on_profile($profileuser, $userroles, $staffroles) {
     global $DB, $USER;
 
     // Staff are always allowed to view timetables in profiles.
