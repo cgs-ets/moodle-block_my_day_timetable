@@ -163,7 +163,7 @@ class timetable_exporter extends exporter {
                     $previousix = count($periods) - 1;
                     // Sometimes staff can teach 2 classes at the same time.
                     // Check if this period is the same as the last period
-                    if ( $class->perioddescription == $periods[$previousix]->perioddescription ) {
+                    if ( $class->perioddescription == $periods[$previousix]->perioddescription  && $class->filetype == 'A' ) {
                         // Attempt to incorporate the meaningful defference between the two classes into the previous period, and skip over this one.
                         $differences = array_diff(explode(' ', $class->classdescription), explode(' ', $periods[$previousix]->classdescription));
                         if ($differences) {
