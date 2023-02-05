@@ -151,7 +151,7 @@ class timetable_exporter extends exporter {
             }
             // Only include Periods, Sessions & Pastoral for now.
             $validperiodnames = array_map('trim', explode(',', $this->related['validperiodnames']));
-            if (preg_match("/" . implode($validperiodnames, '|') . "/i", $class->perioddescription)) {
+            if (preg_match("/" . implode('|', $validperiodnames) . "/i", $class->perioddescription)) {
                 $relateds = [
                     'timetablecolours' => $this->related['timetablecolours'],
                     'validbreaknames' => $this->related['validbreaknames'],
