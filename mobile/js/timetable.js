@@ -27,7 +27,8 @@
      * @param {int} direction
      */
     self.navigate = function(direction) {
-        const modal = self.CoreDomUtilsProvider.showModalLoading();
+        //const modal = self.CoreDomUtilsProvider.showModalLoading();
+        const modal = self.CoreDomUtils.showModalLoading();
         var args = {
             timetableuser: self.CONTENT_OTHERDATA.timetable.user,
             timetablerole: self.CONTENT_OTHERDATA.timetable.role,
