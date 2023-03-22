@@ -21,29 +21,28 @@
  */
 (function(self) {
 
-    /**
-     * Navigate.
-     *
-     * @param {int} direction
-     */
-    self.navigate = function(direction) {
-        //const modal = self.CoreDomUtilsProvider.showModalLoading();
-        const modal = self.CoreDomUtils.showModalLoading();
-        var args = {
-            timetableuser: self.CONTENT_OTHERDATA.timetable.user,
-            timetablerole: self.CONTENT_OTHERDATA.timetable.role,
-            nav: direction,
-            date: self.CONTENT_OTHERDATA.timetable.date,
-            instanceid: self.CONTENT_OTHERDATA.timetable.instanceid
-        }
-        console.log('block_my_day_timetable/mobile/js/timetable.js: Navigate timetable: ' + JSON.stringify(args));
-        self.CoreSitesProvider.getCurrentSite().read('block_my_day_timetable_get_timetable_data_for_date', args).then(function(timetabledata) {
-            self.CONTENT_OTHERDATA.timetable = timetabledata;
-        }).catch((message) => {
-            self.CoreDomUtilsProvider.showErrorModalDefault(message, 'Failed to fetch timetable');
-        }).finally(() => {
-            modal.dismiss();
-        });
-    };
+  /**
+   * Navigate.
+   *
+   * @param {int} direction
+   */
+  self.navigate = async function(direction) {
+      const modal = await self.CoreDomUtilsProvider.showModalLoading();
+      var args = {
+          timetableuser: self.CONTENT_OTHERDATA.timetable.user,
+          timetablerole: self.CONTENT_OTHERDATA.timetable.role,
+          nav: direction,
+          date: self.CONTENT_OTHERDATA.timetable.date,
+          instanceid: self.CONTENT_OTHERDATA.timetable.instanceid
+      }
+      console.log('block_my_day_timetable/mobile/js/timetable.js: Navigate timetable: ' + JSON.stringify(args));
+          self.CoreSitesProvider.getCurrentSite().read('block_my_day_timetable_get_timetable_data_for_date', args).then(function(timetabledata) {
+          self.CONTENT_OTHERDATA.timetable = timetabledata;
+      }).catch((message) => {
+          self.CoreDomUtilsProvider.showErrorModalDefault(message, 'Failed to fetch timetable');
+      }).finally(() => {
+          modal.dismiss();
+      });
+  };
 
 })(this);
