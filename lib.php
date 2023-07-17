@@ -101,9 +101,8 @@ function init_timetable($instanceid) {
             return null;
         }
     }
-    //MV hardcode date
-    //$date = date('Y-m-d', time());
-    $date = date('Y-m-d', strtotime('18-Jul-2023 01:00'));
+    $date = date('Y-m-d', time());
+    //$date = date('Y-m-d', strtotime('18-Jul-2023 01:00'));
 
     // Check if it is the end of the day.
     $endofday = new DateTime($config->endofday);
