@@ -251,14 +251,14 @@ function navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instan
             }
         }
 
-        // Get current term details. Only for staff.
-        if ($timetablerole == 'staff') {
+        // Get current term details.
+        // if ($timetablerole == 'staff') {
             $termdetails = get_term_information($externalDB, $date, $timetabledata);
             $termfinished = false;
             if ($termdetails == null){
                 $termfinished = true;
             }
-        }
+        // }
 
         // Set the user preference to collapse or show the timetable.
         $userpreference = get_user_preferences('block_my_day_timetable_collapsed', 0, $USER);
@@ -271,10 +271,10 @@ function navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instan
             'hide' =>  $userpreference,
             'fromws' => ($nav == -1) ? false : true, // To remove the loading class when the tt is render.
             'day' => date('l, j F Y', strtotime($date)), //Show Day, Number Month Year.
-            'termnumber' => ($timetablerole == 'staff') ? $termdetails['termnumber'] : '',
-            'termweek'   => ($timetablerole == 'staff') ? $termdetails['termweek'] : '',
-            'termday'    => ($timetablerole == 'staff') ? $termdetails['termday'] : '',
-            'termfinished' => ($timetablerole == 'staff') ? $termfinished : true,  // For students always set to true. This way the template doesnt display term details.
+            'termnumber' => $termdetails['termnumber'],
+            'termweek'   => $termdetails['termweek'],
+            'termday'    => $termdetails['termday'],
+            'termfinished' => $termfinished, 
         ];
         $relateds = [
             'timetabledata' => $timetabledata,
