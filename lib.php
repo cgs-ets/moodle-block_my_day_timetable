@@ -101,14 +101,23 @@ function init_timetable($instanceid) {
             return null;
         }
     }
+    
     $date = date('Y-m-d', time());
-    //$date = date('Y-m-d', strtotime('18-Jul-2023 01:00'));
+    //$date = '2026-02-22'; // Sunday
 
     // Check if it is the end of the day.
     $endofday = new DateTime($config->endofday);
     $current_time = new DateTime('now');
     if ($current_time > $endofday) {
         $date = utils::get_next_day($date);
+    }
+
+  // In case its the weekend and the student just access cgs connect.
+
+    $dayOfWeek = date('N', strtotime($date)); // 6=Saturday, 7=Sunday
+    if ($dayOfWeek >= 6) {
+        $daysToMonday = 8 - $dayOfWeek; // 2 for Saturday, 1 para Sunday
+        $date = date('Y-m-d', strtotime("+{$daysToMonday} days", strtotime($date)));
     }
 
     // Generate the new timetable.
