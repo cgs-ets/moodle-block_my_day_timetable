@@ -103,7 +103,7 @@ function init_timetable($instanceid) {
     }
     
     $date = date('Y-m-d', time());
-    //$date = '2026-02-22'; // Sunday
+    // $date = '2026-04-03'; // Good Friday - long weekend
 
     // Check if it is the end of the day.
     $endofday = new DateTime($config->endofday);
@@ -218,9 +218,19 @@ function navigate_timetable($timetableuser, $timetablerole, $nav, $date, $instan
 
         $timetabledata = $externalDB->get_records_sql($sql, $params);
 
-        // For staff that don't have timetables, hide block on initial load.
+        // If data is empty on initial load (e.g. public holiday), look ahead for next available day.
+        // For staff that don't have timetables at all, hide block after exhausting the search.
         if ($nav == -1 && empty($timetabledata)) {
-            return;
+            $days = 0;
+            while(empty($timetabledata) && $days <= 30) {
+                $days++;
+                $date = utils::get_next_day($date);
+                $params = array(
+                    'id' => $timetableuser,
+                    'date' => $date,
+                );
+                $timetabledata = $externalDB->get_records_sql($sql, $params);
+            }
         }
 
         // If data is empty and attempting to navigate cal, look for next available timetable day.
